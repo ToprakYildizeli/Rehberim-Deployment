@@ -1,0 +1,38 @@
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+db.sqlite3
+db.sqlite3-journal
+*.sqlite3
+/media/
+staticfiles/
+local_settings.py
+
+# --- Node / Vite ---
+node_modules/
+dist/
+dist-ssr/
+.vite/
+
+# --- Flutter / Dart ---
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+
+# --- Ortam değişkenleri (örnekler izlenir) ---
+.env
+.env.*
+!.env.example
+
+# --- Editör / işletim sistemi ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.log

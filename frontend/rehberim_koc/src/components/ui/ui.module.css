@@ -1,0 +1,370 @@
+/* Shared primitives. Lifted from the patterns already established in
+   pages/Auth.module.css and pages/Welcome.module.css. */
+
+/* ---------- Button ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.sizeSm { padding: 6px 12px; font-size: 0.8rem; }
+.sizeMd { padding: 10px 16px; }
+.sizeLg { padding: 12px 20px; font-size: 0.95rem; }
+
+.primary { background: var(--accent); color: #fff; }
+.primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.ghost:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+
+.soft { background: var(--accent-subtle); color: var(--accent-text); }
+.soft:hover:not(:disabled) { background: var(--accent-badge); }
+
+.danger { background: var(--danger-bg); color: var(--danger-text); }
+.danger:hover:not(:disabled) { background: var(--danger); color: #fff; }
+
+.subtle { background: transparent; color: var(--text-secondary); }
+.subtle:hover:not(:disabled) { background: var(--bg-alt); color: var(--text); }
+
+.iconOnly { padding: 8px; border-radius: var(--radius-md); }
+.block { width: 100%; }
+
+/* ---------- Card ---------- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.cardPad { padding: var(--space-6); }
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.cardTitle {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.cardSub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 3px 0 0;
+}
+
+/* ---------- Field (Input / Select / Textarea) ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-label);
+  min-width: 0;
+}
+
+.control {
+  width: 100%;
+  padding: 10px 13px;
+  border: 1.5px solid var(--border-input);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  outline: none;
+  background: var(--bg-input);
+  transition: border-color 0.15s, background 0.2s;
+}
+
+.control:focus { border-color: var(--accent); }
+.control::placeholder { color: var(--text-muted); }
+
+/* Dropdown'lar (native select) — modern görünüm: özel chevron + hover vurgusu,
+   "Denemeler → Sırala" menüsüyle tutarlı. Açık liste native kalır (mobilde daha iyi). */
+select.control {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 34px;
+  /* Arka plandan (kart/canvas) ayrışsın diye hafif farklı zemin */
+  background-color: var(--bg-alt);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  background-size: 15px;
+}
+select.control:hover { border-color: var(--accent); }
+select.control:focus { background-color: var(--bg-input); }
+
+.fieldError { font-size: 0.78rem; color: var(--error); }
+
+/* ---------- Search input ---------- */
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+  display: flex;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 9px 14px 9px 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--bg-alt);
+  outline: none;
+  transition: border-color 0.15s, background 0.2s;
+}
+
+.searchInput:focus { border-color: var(--accent); background: var(--bg-input); }
+.searchInput::placeholder { color: var(--text-muted); }
+
+/* ---------- Avatar ---------- */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  flex-shrink: 0;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+.avatarXs { width: 24px; height: 24px; font-size: 0.6rem; }
+.avatarSm { width: 32px; height: 32px; font-size: 0.68rem; }
+.avatarMd { width: 40px; height: 40px; font-size: 0.8rem; }
+.avatarLg { width: 52px; height: 52px; font-size: 1rem; }
+
+/* ---------- Badge / Pill ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.badgeNeutral { background: var(--bg-alt); color: var(--text-secondary); }
+.badgeAccent { background: var(--accent-badge); color: var(--accent-text); }
+.badgeSuccess { background: var(--success-bg); color: var(--success-text); }
+.badgeWarning { background: var(--warning-bg); color: var(--warning-text); }
+.badgeDanger { background: var(--danger-bg); color: var(--danger-text); }
+.badgeViolet { background: var(--violet-bg); color: var(--violet-text); }
+.badgeCyan { background: var(--cyan-bg); color: var(--cyan-text); }
+
+/* ---------- ProgressBar ---------- */
+.progressTrack {
+  flex: 1;
+  height: 5px;
+  background: var(--preview-progress-bg);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  min-width: 40px;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 0.4s ease;
+}
+
+/* ---------- ProgressRing ---------- */
+.ring { display: inline-flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+.ringWrap { position: relative; display: inline-flex; }
+.ringSvg { transform: rotate(-90deg); }
+.ringTrack { stroke: var(--preview-progress-bg); }
+.ringValue {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--text);
+}
+.ringLabel { font-size: 0.75rem; color: var(--text-secondary); }
+
+/* ---------- Modal ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  animation: fadeIn 0.15s ease;
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: var(--space-6);
+  position: relative;
+  animation: popIn 0.18s ease;
+}
+
+.modalClose {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  transition: background 0.15s, color 0.15s;
+}
+
+.modalClose:hover { background: var(--bg-alt); color: var(--text); }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- ThemeToggle ---------- */
+.themeBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.themeBtn:hover { background: var(--bg-alt); color: var(--accent); border-color: var(--accent); }
+.themeBtnFloating { position: fixed; top: 20px; right: 20px; z-index: var(--z-sticky); width: 38px; height: 38px; box-shadow: var(--shadow); }
+
+/* ---------- EmptyState ---------- */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.emptyTitle { font-size: 0.95rem; font-weight: 600; color: var(--text); margin: 0; }
+.emptyText { font-size: 0.84rem; margin: 0; max-width: 340px; }
+
+/* ---------- Spinner ---------- */
+.spinner {
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Tabs / filter pills ---------- */
+.pillGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-alt);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+}
+
+.pill {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.pill:hover { color: var(--text); }
+
+.pillActive {
+  background: var(--bg-card);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .control, .progressFill, .themeBtn { transition: none; }
+  .overlay, .modal { animation: none; }
+  .spinner { animation-duration: 2s; }
+}

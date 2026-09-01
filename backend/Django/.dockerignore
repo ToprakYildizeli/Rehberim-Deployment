@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Django yerel veritabanı & statik
+db.sqlite3
+db.sqlite3-journal
+/media/
+/staticfiles/
+staticfiles/
+
+# Ortam / gizli
+.env
+*.env.local
+local_settings.py
+
+# Araç/IDE
+.idea/
+.vscode/
+.git/
+.DS_Store
+*.log

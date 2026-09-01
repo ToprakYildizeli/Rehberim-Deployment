@@ -1,0 +1,227 @@
+.page {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(360px, 3fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+/* ---------- Calendar ---------- */
+.calHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+}
+
+.month {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.navGroup { display: flex; gap: var(--space-2); }
+
+.navBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.navBtn:hover { background: var(--bg-alt); color: var(--accent); border-color: var(--accent); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding-bottom: var(--space-3);
+}
+
+/* Gün hücresi bir kutudur: etkinlikler nokta değil, adı okunan kutucuklar olarak
+   çizilir. Yükseklik sabit (gün numarası + CHIPS_PER_CELL kutu + "+N" satırı) ve
+   `overflow: hidden` son emniyet — hiçbir etkinlik hücrenin altından taşmaz. */
+.cell {
+  min-height: 104px;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 6px;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.cell:hover { background: var(--bg-alt); }
+/* Ayın dışındaki boşluklar hücre değil — kutu görünümü almasınlar. */
+.cellEmpty { cursor: default; border-color: transparent; background: transparent; }
+.cellEmpty:hover { background: transparent; }
+
+.cellDay { font-size: 0.78rem; line-height: 1.1; padding-left: 2px; }
+.cellToday .cellDay { font-weight: 700; color: var(--accent); }
+
+.cellSelected {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.cellSelected .cellDay { font-weight: 700; }
+
+.cellEvents { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+
+.chip {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+  border-left: 3px solid var(--accent);
+  border-radius: 3px;
+  background: var(--bg-alt);
+  padding: 2px 5px;
+}
+.chipTime { font-size: 0.58rem; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
+.chipText {
+  font-size: 0.63rem;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chipMore {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding-left: 5px;
+}
+
+/* ---------- Agenda rail ---------- */
+.agendaDate {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.agendaCount {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin: 3px 0 var(--space-5);
+}
+
+.agendaList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+/* Grid rather than flex: only the text column is allowed to collapse, so the
+   badge can never ride over the student name. */
+/* Yalnız metin sütunu daralır (`flex: 1; min-width: 0`); saat, avatar ve sil
+   düğmesi kendi boyunda kalır. Başlık artık rozette değil bu sütunda —
+   `category` backend'in serbest metin `title`'ıdır (ayrı kategori alanı yok) ve
+   rozete sığmayıp satırı karttan taşırıyordu. Izgara yerine flex, çünkü avatar
+   yalnız öğrenciye bağlı etkinlikte var: sabit sütunlu bir ızgarada öğrencisiz
+   etkinlikte metin yanlış sütuna kayıp daralmıyordu. */
+.event {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--bg-alt);
+  padding: var(--space-3) var(--space-4);
+}
+
+.eventTime {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.eventBody { flex: 1; min-width: 0; }
+.eventName {
+  /* Must be block — ellipsis truncation has no effect on an inline span. */
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.eventNote {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eventDelete {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.eventDelete:hover { color: var(--danger); background: var(--danger-bg); }
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-5);
+}
+
+.formTitle { font-size: 0.85rem; font-weight: 700; color: var(--text); margin: 0; }
+.formRow { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+
+.timePicker { display: flex; align-items: center; gap: 6px; }
+.timePicker select { flex: 1; }
+.timeSep { color: var(--text-muted); font-weight: 700; }
+.formActions { display: flex; gap: var(--space-3); }
+.formActions > * { flex: 1; }
+
+@media (max-width: 1100px) {
+  .page { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .cell { aspect-ratio: 1; padding: 4px; font-size: 0.74rem; }
+  .formRow { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,388 @@
+from django.db import migrations
+
+
+# TYT/AYT konu kataloğu — sınav dersleri (category='tyt' / 'ayt').
+#
+# Okul derslerinin (category='okul') konuları sınıf + müfredat boyutunda ayrılır
+# (bkz. 0010_seed_topics_full). Sınav dersleri ise SINIFA değil SINAV KAPSAMINA
+# ait düz konu listeleridir; ÖSYM YKS güncel programına dayanır.
+#
+# Yerleştirme kararı (kanıta dayalı):
+#   * curriculum='eski'  → Sınav derslerini yalnızca sınava hazırlanan öğrenciler
+#     görür (Student.available_subjects: 12. sınıf + mezun). Bu öğrencilerin
+#     curriculum'u daima 'eski' döner; TopicListView de öğrenci isteğinde
+#     otomatik 'eski' filtreler. Dolayısıyla tek müfredat seti yeterli.
+#   * grade='12'         → Sınav konuları tek sınıfa bağlanmaz; hepsini sınav
+#     kohortunun sınıfı olan '12' kovasına koyup listeyi saf 'order' ile sıralarız.
+#     (TopicListView grade'i yalnızca ?grade= verilirse filtreler; sınav
+#     öğrencisi konuları ders bazında, grade'siz çeker.)
+
+TYT = {
+    "Türkçe": [
+        "Sözcükte Anlam",
+        "Söz Yorumu (Deyim ve Atasözü)",
+        "Cümlede Anlam",
+        "Paragrafta Anlam ve Yapı",
+        "Anlatım Teknikleri ve Düşünceyi Geliştirme Yolları",
+        "Ses Bilgisi",
+        "Yazım Kuralları",
+        "Noktalama İşaretleri",
+        "Sözcükte Yapı (Kök ve Ekler)",
+        "Sözcük Türleri (İsim, Zamir, Sıfat, Zarf, Edat-Bağlaç-Ünlem)",
+        "Fiiller (Fiilde Anlam, Ek Fiil, Fiilimsi, Fiilde Çatı)",
+        "Cümlenin Ögeleri",
+        "Cümle Türleri",
+        "Anlatım Bozuklukları",
+    ],
+    "Matematik": [
+        "Temel Kavramlar",
+        "Sayı Basamakları",
+        "Bölme ve Bölünebilme",
+        "EBOB - EKOK",
+        "Rasyonel Sayılar",
+        "Basit Eşitsizlikler",
+        "Mutlak Değer",
+        "Üslü Sayılar",
+        "Köklü Sayılar",
+        "Çarpanlara Ayırma",
+        "Oran - Orantı",
+        "Denklem Çözme",
+        "Problemler (Sayı, Kesir, Yaş, Yüzde, Kâr-Zarar, Karışım, Hareket, İşçi-Havuz, Faiz)",
+        "Kümeler",
+        "Kartezyen Çarpım",
+        "Mantık",
+        "Fonksiyonlar",
+        "Polinomlar",
+        "İkinci Dereceden Denklemler",
+        "Permütasyon - Kombinasyon",
+        "Binom",
+        "Olasılık",
+        "Veri ve İstatistik",
+    ],
+    "Geometri": [
+        "Doğruda ve Üçgende Açılar",
+        "Dik ve Özel Üçgenler",
+        "Üçgende Açıortay ve Kenarortay",
+        "Üçgende Benzerlik",
+        "Üçgende Alan",
+        "Çokgenler",
+        "Dörtgenler",
+        "Özel Dörtgenler (Yamuk, Paralelkenar, Eşkenar Dörtgen, Dikdörtgen, Kare, Deltoid)",
+        "Çember ve Daire (Açı, Uzunluk, Alan)",
+        "Analitik Geometri (Nokta ve Doğru)",
+        "Katı Cisimler (Prizma, Piramit, Küre, Koni, Silindir)",
+        "Dönüşüm Geometrisi",
+    ],
+    "Fizik": [
+        "Fizik Bilimine Giriş",
+        "Madde ve Özellikleri",
+        "Basınç ve Kaldırma Kuvveti",
+        "Isı, Sıcaklık ve Genleşme",
+        "Hareket ve Kuvvet",
+        "Dinamik (Newton'ın Hareket Yasaları)",
+        "İş, Güç ve Enerji",
+        "Elektrostatik",
+        "Elektrik Akımı ve Devreler",
+        "Manyetizma",
+        "Dalgalar",
+        "Optik (Aydınlanma, Gölge, Yansıma, Aynalar, Kırılma, Mercekler)",
+    ],
+    "Kimya": [
+        "Kimya Bilimi",
+        "Atom ve Periyodik Sistem",
+        "Kimyasal Türler Arası Etkileşimler",
+        "Maddenin Halleri",
+        "Doğa ve Kimya",
+        "Kimyanın Temel Kanunları ve Kimyasal Hesaplamalar (Mol)",
+        "Karışımlar",
+        "Asitler, Bazlar ve Tuzlar",
+        "Kimya Her Yerde",
+    ],
+    "Biyoloji": [
+        "Canlıların Ortak Özellikleri",
+        "Canlıların Temel Bileşikleri (İnorganik ve Organik)",
+        "Hücre ve Organelleri",
+        "Hücre Zarından Madde Geçişi",
+        "Canlıların Sınıflandırılması ve Çeşitliliği",
+        "Hücre Bölünmeleri (Mitoz ve Mayoz)",
+        "Üreme (Eşeyli ve Eşeysiz)",
+        "Kalıtımın Genel İlkeleri",
+        "Ekosistem Ekolojisi ve Güncel Çevre Sorunları",
+    ],
+    "Tarih": [
+        "Tarih ve Zaman",
+        "İnsanlığın İlk Dönemleri",
+        "Orta Çağ'da Dünya",
+        "İlk ve Orta Çağlarda Türk Dünyası",
+        "İslam Medeniyetinin Doğuşu",
+        "Türklerin İslamiyet'i Kabulü ve İlk Türk-İslam Devletleri",
+        "Yerleşme ve Devletleşme Sürecinde Selçuklu Türkiyesi",
+        "Beylikten Devlete Osmanlı Siyaseti (Kuruluş)",
+        "Dünya Gücü Osmanlı (Yükselme)",
+        "Değişen Dünya Dengeleri Karşısında Osmanlı Siyaseti",
+        "Uluslararası İlişkilerde Denge Stratejisi (1774-1914)",
+        "Devrimler Çağında Değişen Devlet-Toplum İlişkileri",
+        "XX. Yüzyıl Başlarında Osmanlı Devleti ve Dünya",
+        "Milli Mücadele",
+        "Atatürkçülük ve Türk İnkılabı",
+    ],
+    "Coğrafya": [
+        "Doğa ve İnsan",
+        "Dünya'nın Şekli ve Hareketleri",
+        "Coğrafi Konum ve Harita Bilgisi",
+        "Atmosfer ve İklim Bilgisi",
+        "İç ve Dış Kuvvetler (Yer Şekilleri)",
+        "Su, Toprak ve Bitkiler",
+        "Nüfus",
+        "Göç",
+        "Yerleşme",
+        "Ekonomik Faaliyetler",
+        "Bölgeler ve Ülkeler",
+        "Doğal Afetler ve Çevre",
+    ],
+    "Felsefe": [
+        "Felsefeyi Tanıma",
+        "Bilgi Felsefesi",
+        "Varlık Felsefesi",
+        "Ahlak Felsefesi",
+        "Sanat Felsefesi",
+        "Din Felsefesi",
+        "Siyaset Felsefesi",
+        "Bilim Felsefesi",
+        "İlk Çağ Felsefesi (MÖ 6. yy - MS 2. yy)",
+        "MS 2. yy - MS 15. yy Felsefesi",
+        "15. yy - 17. yy Felsefesi",
+        "18. yy - 19. yy Felsefesi",
+        "20. yy Felsefesi",
+        "Psikoloji",
+        "Sosyoloji",
+        "Mantık",
+    ],
+    "Din Kültürü ve Ahlak Bilgisi": [
+        "Bilgi ve İnanç",
+        "Din ve İslam",
+        "İslam ve İbadet",
+        "Gençlik ve Değerler",
+        "Allah-İnsan İlişkisi",
+        "Hz. Muhammed (S.A.V.)",
+        "İslam Düşüncesinde Yorumlar",
+        "Din, Kültür ve Medeniyet (Gönül Coğrafyamız)",
+        "Dünya ve Ahiret",
+        "Kur'an'da Bazı Kavramlar",
+        "Yaşayan Dinler",
+    ],
+}
+
+AYT = {
+    "Türk Dili ve Edebiyatı": [
+        "Anlam Bilgisi (Sözcük, Cümle, Paragraf)",
+        "Güzel Sanatlar ve Edebiyat",
+        "Metinlerin Sınıflandırılması",
+        "Şiir Bilgisi (Nazım Biçimleri/Türleri, Ölçü, Uyak, Edebi Sanatlar)",
+        "İslamiyet Öncesi Türk Edebiyatı ve Geçiş Dönemi",
+        "Halk Edebiyatı",
+        "Divan Edebiyatı",
+        "Tanzimat Dönemi Edebiyatı",
+        "Servet-i Fünun ve Fecr-i Ati Edebiyatı",
+        "Milli Edebiyat Dönemi",
+        "Cumhuriyet Dönemi Edebiyatı",
+        "Edebi Akımlar",
+        "Dünya Edebiyatı",
+        "Dil Bilgisi (Sözcük Türleri, Cümlenin Ögeleri, Anlatım Bozuklukları)",
+    ],
+    "Matematik": [
+        "Fonksiyonlar (İleri)",
+        "Polinomlar",
+        "İkinci Dereceden Denklem ve Eşitsizlikler",
+        "Parabol",
+        "Karmaşık Sayılar",
+        "Trigonometri",
+        "Üstel ve Logaritmik Fonksiyonlar",
+        "Diziler",
+        "Limit ve Süreklilik",
+        "Türev",
+        "İntegral",
+        "Permütasyon, Kombinasyon ve Olasılık",
+        "Binom Açılımı",
+    ],
+    "Geometri": [
+        "Üçgenlerde İleri Bağıntılar",
+        "Dörtgenler ve Çokgenler",
+        "Çember ve Daire",
+        "Analitik Geometri (Doğrunun Analitiği)",
+        "Çemberin Analitik İncelenmesi",
+        "Dönüşüm Geometrisi",
+        "Katı Cisimler (Uzay Geometri)",
+        "Uzayda Vektörler",
+        "Koniklerin Analitiği (Parabol, Elips, Hiperbol)",
+    ],
+    "Fizik": [
+        "Vektörler",
+        "Kuvvet, Tork ve Denge",
+        "Kütle Merkezi ve Basit Makineler",
+        "Hareket (Bağıl Hareket, Newton Yasaları, Bir/İki Boyutta Hareket)",
+        "İş, Güç ve Enerji",
+        "Atışlar",
+        "İtme ve Çizgisel Momentum",
+        "Elektriksel Kuvvet ve Alan",
+        "Düzgün Elektrik Alan ve Sığaçlar",
+        "Manyetizma ve Elektromanyetik İndükleme",
+        "Alternatif Akım ve Transformatörler",
+        "Çembersel Hareket",
+        "Kütle Çekim ve Kepler Yasaları",
+        "Basit Harmonik Hareket",
+        "Dalga Mekaniği",
+        "Atom Fiziği ve Radyoaktivite",
+        "Modern Fizik",
+        "Modern Fiziğin Teknolojideki Uygulamaları",
+    ],
+    "Kimya": [
+        "Modern Atom Teorisi",
+        "Gazlar",
+        "Sıvı Çözeltiler ve Çözünürlük",
+        "Kimyasal Tepkimelerde Enerji",
+        "Kimyasal Tepkimelerde Hız",
+        "Kimyasal Tepkimelerde Denge",
+        "Asit-Baz Dengesi",
+        "Çözünürlük Dengesi",
+        "Kimya ve Elektrik (Elektrokimya)",
+        "Karbon Kimyasına Giriş",
+        "Organik Kimya (Organik Bileşikler)",
+        "Enerji Kaynakları ve Bilimsel Gelişmeler",
+    ],
+    "Biyoloji": [
+        "Sinir Sistemi",
+        "Endokrin Sistem ve Hormonlar",
+        "Duyu Organları",
+        "Destek ve Hareket Sistemi",
+        "Sindirim Sistemi",
+        "Dolaşım ve Bağışıklık Sistemi",
+        "Solunum Sistemi",
+        "Boşaltım Sistemi",
+        "Üreme Sistemi ve Embriyonik Gelişim",
+        "Komünite ve Popülasyon Ekolojisi",
+        "Genden Proteine (Nükleik Asitler, Genetik Kod, Protein Sentezi)",
+        "Canlılarda Enerji Dönüşümleri (Fotosentez, Kemosentez, Solunum)",
+        "Bitki Biyolojisi",
+        "Canlılar ve Çevre (Genetik Mühendisliği ve Biyoteknoloji)",
+    ],
+    "Tarih-1": [
+        "Tarih ve Zaman",
+        "İnsanlığın İlk Dönemleri",
+        "Orta Çağ'da Dünya",
+        "İlk ve Orta Çağlarda Türk Dünyası",
+        "İslam Medeniyetinin Doğuşu",
+        "Türklerin İslamiyet'i Kabulü ve İlk Türk-İslam Devletleri",
+        "Yerleşme ve Devletleşme Sürecinde Selçuklu Türkiyesi",
+        "Beylikten Devlete Osmanlı Siyaseti (Kuruluş)",
+        "Dünya Gücü Osmanlı (Yükselme)",
+        "Sultan ve Osmanlı Merkez Teşkilatı",
+        "Klasik Çağda Osmanlı Toplum Düzeni",
+        "Değişen Dünya Dengeleri Karşısında Osmanlı Siyaseti",
+        "Değişim Çağında Avrupa ve Osmanlı",
+        "Uluslararası İlişkilerde Denge Stratejisi (1774-1914)",
+        "Devrimler Çağında Değişen Devlet-Toplum İlişkileri",
+        "Sermaye ve Emek",
+        "XIX. ve XX. Yüzyılda Toplumsal Değişimler",
+        "XX. Yüzyıl Başlarında Osmanlı Devleti ve Dünya",
+        "Milli Mücadele",
+        "Atatürkçülük ve Türk İnkılabı",
+    ],
+    "Tarih-2": [
+        "İki Küresel Savaş Arasında Dünya",
+        "II. Dünya Savaşı",
+        "Soğuk Savaş Dönemi",
+        "Yumuşama Dönemi ve Sonrası",
+        "Küreselleşen Dünya",
+        "Toplumsal Devrim Çağında Dünya ve Türkiye",
+        "SSCB'nin Dağılması ve Yeni Dünya Düzeni",
+    ],
+    "Coğrafya-1": [
+        "Ekosistem ve Biyoçeşitlilik",
+        "Nüfus Politikaları",
+        "Şehirleşme ve Şehirlerin Fonksiyonları",
+        "Türkiye'de Nüfus ve Yerleşme",
+        "Türkiye Ekonomisi (Tarım, Hayvancılık, Madencilik, Sanayi)",
+        "Türkiye'nin Coğrafi Bölgeleri",
+        "Ekonomik Faaliyetler ve Doğal Kaynaklar",
+    ],
+    "Coğrafya-2": [
+        "Küresel ve Bölgesel Örgütler",
+        "Türkiye'nin Jeopolitik Konumu ve Bölgesel Etkileri",
+        "Ülkeler Arası Etkileşim (Kültür Bölgeleri, Küresel Ticaret)",
+        "Türkiye'de Bölgesel Kalkınma Projeleri",
+        "Çevre Sorunları ve Sürdürülebilirlik",
+        "Doğal Kaynakların Yönetimi",
+        "Küreselleşen Dünya",
+    ],
+    "Felsefe": [
+        "Felsefenin Konusu ve Alanı",
+        "Bilgi Felsefesi",
+        "Varlık Felsefesi",
+        "Ahlak Felsefesi",
+        "Sanat Felsefesi",
+        "Din Felsefesi",
+        "Siyaset Felsefesi",
+        "Bilim Felsefesi",
+        "İlk Çağ Felsefesi (MÖ 6. yy - MS 2. yy)",
+        "MS 2. yy - MS 15. yy Felsefesi",
+        "15. yy - 17. yy Felsefesi",
+        "18. yy - 19. yy Felsefesi",
+        "20. yy Felsefesi",
+        "Psikoloji Bilimini Tanıyalım",
+        "Psikolojinin Temel Süreçleri (Öğrenme, Bellek, Düşünme)",
+        "Ruh Sağlığının Temelleri",
+        "Sosyolojiye Giriş",
+        "Birey ve Toplum",
+        "Toplumsal Kurumlar",
+        "Toplumsal Değişme ve Gelişme",
+        "Mantığa Giriş ve Klasik Mantık",
+        "Mantık ve Dil",
+        "Sembolik (Modern) Mantık",
+    ],
+    "Din Kültürü ve Ahlak Bilgisi": [
+        "Dünya ve Ahiret",
+        "Kur'an'a Göre Hz. Muhammed",
+        "Kur'an'da Bazı Kavramlar",
+        "İnançla İlgili Meseleler",
+        "İslam ve Bilim",
+        "İslam Düşüncesinde Tasavvufi Yorumlar",
+        "Güncel Dini Meselelere Çözümler",
+        "Hint ve Doğu Asya Dinleri",
+        "Yaşayan Dünya Dinleri",
+    ],
+}
+
+
+def seed(apps, schema_editor):
+    Subject = apps.get_model('Rehberim', 'Subject')
+    Topic = apps.get_model('Rehberim', 'Topic')
+
+    for category, data in (('tyt', TYT), ('ayt', AYT)):
+        for subject_name, topics in data.items():
+            subject = Subject.objects.filter(name=subject_name, category=category).first()
+            if subject is None:
+                continue
+            for order, name in enumerate(topics):
+                Topic.objects.get_or_create(
+                    subject=subject, grade='12', curriculum='eski',
+                    name=name, defaults={'order': order},
+                )
+
+
+def unseed(apps, schema_editor):
+    # Yalnızca bu migration'ın eklediği sınav derslerinin konularını sil;
+    # okul derslerinin konularına dokunma.
+    Topic = apps.get_model('Rehberim', 'Topic')
+    Topic.objects.filter(subject__category__in=['tyt', 'ayt']).delete()
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('Rehberim', '0012_booktopic'),
+    ]
+
+    operations = [
+        migrations.RunPython(seed, unseed),
+    ]

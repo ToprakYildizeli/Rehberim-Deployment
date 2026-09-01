@@ -1,0 +1,526 @@
+.page { display: flex; flex-direction: column; gap: var(--space-5); }
+
+/* ---------- Net comparison chart ---------- */
+.chartHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+}
+
+.chartControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.benchmarkKey {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.benchmarkDash {
+  width: 22px;
+  border-top: 1.5px dashed var(--accent);
+}
+
+.chart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: var(--space-3);
+  height: 240px;
+  padding-top: 26px;
+  /* Room at the right for the benchmark label so it can't sit on the last bar. */
+  padding-right: 68px;
+}
+
+.benchmarkLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1.5px dashed var(--accent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.benchmarkLabel {
+  position: absolute;
+  right: 0;
+  top: -8px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg-card);
+  padding: 0 4px;
+}
+
+.bar {
+  flex: 1;
+  max-width: 64px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.barCol {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  gap: 6px;
+}
+
+.barValue {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.barFill {
+  width: 100%;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: height 0.45s ease, filter 0.15s;
+  min-height: 4px;
+}
+
+.bar:hover .barFill { filter: brightness(1.08); }
+
+/* ---------- Widget row ---------- */
+/* minmax(0, 1fr) rather than 1fr: grid items default to min-width:auto, which
+   would let the student table force the whole page to scroll horizontally. */
+.widgetRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.countBadge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-alt);
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.countDanger { background: var(--danger-bg); color: var(--danger-text); }
+
+.liveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--success-text);
+  background: var(--success-bg);
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+
+.liveDot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--success);
+}
+
+/* Aksiyon Bekleyenler */
+.actionList { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.actionItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.actionItem:last-child { border-bottom: none; }
+
+.actionIcon {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-md);
+  background: var(--accent-subtle);
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.actionText {
+  flex: 1;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  min-width: 0;
+}
+
+/* Kırmızı Alarm */
+.alertList { display: flex; flex-direction: column; gap: var(--space-3); }
+
+.alertRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: filter 0.15s;
+}
+
+.alertRow:hover { filter: brightness(0.97); }
+.alertDanger { background: var(--danger-bg); }
+.alertWarning { background: var(--warning-bg); }
+
+.alertBody { flex: 1; min-width: 0; }
+
+.alertName {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.alertReason {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  margin: 2px 0 0;
+}
+
+.alertChevron { color: var(--text-muted); flex-shrink: 0; display: flex; }
+
+/* Hızlı Akış */
+.feedList { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.feedItem { display: flex; gap: var(--space-3); }
+
+.feedDot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.feedName { font-size: 0.8rem; font-weight: 700; color: var(--text); margin: 0; }
+.feedText { font-size: 0.75rem; color: var(--text-secondary); margin: 2px 0 0; line-height: 1.4; }
+.feedTime { font-size: 0.68rem; color: var(--text-muted); margin: 3px 0 0; }
+
+/* ---------- Bottom split ---------- */
+.bottomRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.table { width: 100%; border-collapse: collapse; }
+
+.table th {
+  text-align: left;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.table tbody tr { cursor: pointer; transition: background 0.15s; }
+.table tbody tr:hover { background: var(--bg-alt); }
+.table tbody tr:last-child td { border-bottom: none; }
+
+.cellStudent { display: flex; align-items: center; gap: var(--space-3); }
+.cellName { font-weight: 600; white-space: nowrap; }
+
+.cellCompliance { display: flex; align-items: center; gap: var(--space-3); min-width: 120px; }
+.compliancePct { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
+
+.tableScroll { overflow-x: auto; }
+
+.eyeBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  border-radius: var(--radius-sm);
+}
+
+.eyeBtn:hover { color: var(--accent); background: var(--accent-subtle); }
+
+/* AI rail */
+.aiHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.aiMark {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-md);
+  background: var(--violet-bg);
+  color: var(--violet);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.aiTitle { font-size: 0.95rem; font-weight: 700; color: var(--text); margin: 0; }
+.aiSub { font-size: 0.72rem; color: var(--text-muted); margin: 2px 0 0; }
+
+.aiList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.aiCard {
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.aiCard:hover { background: var(--bg-alt); }
+.aiCardDanger { border-left-color: var(--danger); }
+.aiCardSuccess { border-left-color: var(--success); }
+.aiCardAccent { border-left-color: var(--accent); }
+
+.aiCardHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.aiCardName { flex: 1; font-size: 0.82rem; font-weight: 700; color: var(--text); min-width: 0; }
+.aiCardGrade { font-size: 0.68rem; color: var(--text-muted); }
+.aiCardBody { font-size: 0.76rem; line-height: 1.55; color: var(--text-secondary); margin: 0 0 var(--space-3); }
+
+.aiCardCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1280px) {
+  .bottomRow { grid-template-columns: minmax(0, 1fr); }
+  .aiList { max-height: none; }
+}
+
+@media (max-width: 1024px) {
+  .widgetRow { grid-template-columns: minmax(0, 1fr); }
+  .chart { height: 200px; }
+}
+
+@media (max-width: 640px) {
+  .chart { height: 170px; gap: 4px; padding-right: 0; }
+  .barValue { font-size: 0.62rem; }
+  /* The pill group is the widest thing on the page at this size — let it scroll
+     on its own rather than widening the document. */
+  .chartControls { width: 100%; overflow-x: auto; }
+  .benchmarkLabel { display: none; }
+}
+
+/* ============ Panel (gerçek veri) — yeni düzen ============ */
+.center { display: grid; place-items: center; padding: 60px; }
+
+/* KPI şeridi */
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.kpiCard { display: flex; flex-direction: column; gap: 4px; }
+.kpiIcon {
+  display: grid; place-items: center;
+  width: 36px; height: 36px; border-radius: var(--radius-md);
+  margin-bottom: 4px;
+}
+.kpi_accent { background: var(--accent-subtle); color: var(--accent); }
+.kpi_danger { background: var(--error-bg); color: var(--error); }
+.kpi_violet { background: rgba(139,92,246,0.12); color: var(--violet); }
+.kpi_cyan { background: rgba(6,182,212,0.12); color: #0891b2; }
+.kpi_success { background: var(--success-bg); color: var(--success-text); }
+.kpiValue { font-size: 1.6rem; font-weight: 800; color: var(--text); line-height: 1; }
+.kpiLabel { font-size: 0.75rem; color: var(--text-muted); }
+
+/* İkili satır */
+.pairRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.countWarning { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #b45309); }
+
+/* Ortak liste satırları */
+.list { display: flex; flex-direction: column; gap: 2px; }
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  padding: 8px 6px;
+  border-radius: var(--radius-md);
+  transition: background 0.12s;
+}
+button.row:hover { background: var(--bg-alt); }
+.rowMain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.rowName { font-size: 0.85rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rowSub { font-size: 0.72rem; color: var(--text-muted); }
+.rowChevron { color: var(--text-muted); flex-shrink: 0; }
+.rowStat { font-size: 0.85rem; font-weight: 700; color: var(--text); flex-shrink: 0; }
+
+.dateChip {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 52px; flex-shrink: 0;
+  background: var(--bg-alt); border-radius: var(--radius-md); padding: 5px 6px;
+}
+.dateChipDay { font-size: 0.72rem; font-weight: 700; color: var(--text); }
+.dateChipTime { font-size: 0.68rem; color: var(--text-muted); }
+
+/* Kıyaslama */
+.cmpHead {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-4);
+}
+.cmpTitle { display: flex; align-items: center; gap: 6px; font-size: 0.98rem; font-weight: 700; margin: 0; color: var(--text); }
+.cmpSub { font-size: 0.76rem; color: var(--text-muted); margin: 3px 0 0; }
+.rankList { display: flex; flex-direction: column; gap: 4px; }
+.rankRow {
+  display: flex; align-items: center; gap: var(--space-3);
+  width: 100%; background: transparent; border: none; font: inherit; cursor: pointer;
+  padding: 6px; border-radius: var(--radius-md); transition: background 0.12s;
+}
+.rankRow:hover { background: var(--bg-alt); }
+.rankName { width: 120px; flex-shrink: 0; font-size: 0.82rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rankTrack { flex: 1; height: 12px; background: var(--bg-alt); border-radius: var(--radius-pill); overflow: hidden; min-width: 0; }
+.rankFill { display: block; height: 100%; min-width: 2px; border-radius: var(--radius-pill); transition: width 0.4s ease; }
+.rankValue { width: 108px; text-align: right; flex-shrink: 0; font-size: 0.82rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 1000px) {
+  .kpiRow { grid-template-columns: repeat(2, 1fr); }
+  .widgetRow { grid-template-columns: 1fr; }
+  .pairRow { grid-template-columns: 1fr; }
+}
+
+/* ============ Boyut düzeltmesi + grafikler ============ */
+/* Satırdaki kartlar eşit yükseklik; listeler kart içinde kaydırılır */
+.widgetRow { align-items: stretch; }
+.pairRow { align-items: stretch; }
+.wCard { display: flex; flex-direction: column; }
+.wCard .list { flex: 1; max-height: 300px; overflow-y: auto; }
+
+/* Grafik satırı: net trend (geniş) + uyum donutu */
+.chartRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: stretch;
+}
+.chartCard { display: flex; flex-direction: column; }
+
+/* Net trend çizgisi (SVG) */
+.trendSvg { width: 100%; height: auto; max-height: 300px; display: block; margin-top: var(--space-2); }
+.grid { stroke: var(--border); stroke-width: 1; }
+.axisTxt { fill: var(--text-muted); font-size: 13px; font-weight: 500; }
+.trendArea { fill: var(--accent); opacity: 0.1; }
+.trendLine { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.trendDot { fill: var(--bg-card); stroke: var(--accent); stroke-width: 2; cursor: pointer; }
+
+/* Uyum donutu */
+.donutWrap { display: flex; align-items: center; gap: var(--space-5); margin-top: var(--space-3); flex-wrap: wrap; }
+.donut {
+  width: 120px; height: 120px; border-radius: 50%; flex-shrink: 0; position: relative;
+}
+.donutHole {
+  position: absolute; inset: 26%; background: var(--bg-card); border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.donutNum { font-size: 1.3rem; font-weight: 800; color: var(--text); line-height: 1; }
+.donutCap { font-size: 0.62rem; color: var(--text-muted); }
+.donutLegend { list-style: none; margin: 0; padding: 0; flex: 1; min-width: 130px; display: flex; flex-direction: column; gap: var(--space-2); }
+.donutItem { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--text-secondary); }
+.legDot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.donutLabel { flex: 1; min-width: 0; }
+.donutVal { font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 1000px) {
+  .chartRow { grid-template-columns: 1fr; }
+}
+
+/* Net grafiği öğrenci seçim chip'leri */
+.netChips { display: flex; flex-wrap: wrap; gap: 6px; margin: var(--space-3) 0 var(--space-2); }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 0.74rem; font-weight: 600; color: var(--text-secondary);
+  background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-pill);
+  padding: 4px 10px; cursor: pointer; transition: opacity 0.15s, border-color 0.15s;
+}
+.chip:hover { border-color: var(--accent); }
+.chipOff { opacity: 0.4; }
+.chipDot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+/* Kıyaslama kontrolleri (metrik + net boyutu) */
+.cmpControls { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.dimSelect { max-width: 170px; }
+
+/* TYT/AYT toggle + ders grubu dropdown'ı her zaman yan yana */
+.netDimCtl { display: inline-flex; align-items: center; gap: var(--space-2); }

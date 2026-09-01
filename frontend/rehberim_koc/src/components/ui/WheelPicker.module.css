@@ -1,0 +1,43 @@
+.wheel {
+  position: relative;
+  height: 108px;      /* 3 satır × 36px */
+  overflow: hidden;
+  flex: 1;
+}
+
+/* Ortadaki seçili satır bandı */
+.highlight {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 36px;
+  height: 36px;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+
+.scroller {
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+          mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+}
+.scroller::-webkit-scrollbar { display: none; }
+
+.item {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}

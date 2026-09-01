@@ -1,0 +1,14 @@
+# Rehberim Backend — geliştirici ortamı
+# Kullanım:  docker compose up --build   → API: http://localhost:8000/api/
+services:
+  backend:
+    build: ./Django
+    container_name: rehberim-backend
+    # Migrasyonları uygula, sonra dev sunucusunu başlat
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./Django:/app          # kod canlı yansısın (hot reload)
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1

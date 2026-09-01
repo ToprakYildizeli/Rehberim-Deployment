@@ -1,0 +1,106 @@
+.wrap { position: relative; }
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+
+.trigger:hover { border-color: var(--accent); }
+.triggerText { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.pop {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 258px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg, 0 10px 30px rgba(0, 0, 0, 0.18));
+  padding: var(--space-3);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.monthName { font-size: 0.8rem; font-weight: 700; color: var(--text); }
+
+.navBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+}
+
+.navBtn:hover { border-color: var(--accent); color: var(--accent); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.wd {
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding-bottom: 3px;
+}
+
+.day {
+  aspect-ratio: 1;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.72rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.day:hover:not(:disabled) { background: var(--accent-subtle); color: var(--accent); }
+
+/* Dolu günler: tıklanamaz ve üstü çizili — neden kapalı olduğu ipucundan okunur. */
+.day:disabled {
+  color: var(--text-muted);
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.daySelected {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.daySelected:hover:not(:disabled) { background: var(--accent); color: #fff; }
+
+.hint {
+  margin: var(--space-2) 0 0;
+  font-size: 0.64rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
