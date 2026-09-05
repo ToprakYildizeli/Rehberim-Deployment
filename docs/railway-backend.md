@@ -63,6 +63,23 @@ kapalı sayar; `SECRET_KEY` veya `DATABASE_URL` eksikse uygulama sessizce yanlı
 
 - **Yol: `/healthz`**
 
+⚠️ **İlk kurulumda iki tuzak buraya takıldı (5 Eylül 2026), ikisi de çözüldü:**
+
+1. `DJANGO_ALLOWED_HOSTS`'a **platformun kendi adresi de girilmeli.** Yoklama
+   konteyner'a iç ağdan, genel adresten farklı bir `Host` başlığıyla geliyor;
+   yalnız genel adres yazılırsa Django her yoklamaya `400` döner ve dağıtım
+   "1/1 replicas never became healthy" ile iptal edilir. Django baştaki noktayı
+   alt alan adı jokeri sayar:
+   `DJANGO_ALLOWED_HOSTS=${{RAILWAY_PUBLIC_DOMAIN}},.railway.app`
+2. Yoklama **düz HTTP ile ve `X-Forwarded-Proto` başlığı olmadan** geliyor, yani
+   HTTPS yönlendirmesine takılıp `301` dönerdi. `SECURE_REDIRECT_EXEMPT` ile
+   yalnız `/healthz` muaf tutuldu (backend'de, `settings.py`).
+
+**Port:** Railway kendi `PORT` değerini enjekte ediyor ve giriş betiği ona uyuyor
+(gunicorn `8080`'i dinledi). Alan adının **hedef portu buna eşit olmalı** — kutuya
+başka bir değer yazılırsa sağlık yoklaması iç ağdan geçtiği için dağıtım başarılı
+görünür ama **genel adres dışarıdan açılmaz**. `PORT` değişkenini elle tanımlama.
+
 Railway yeni sürümü canlıya almadan önce buraya sorar; `200` gelmezse eski sürüm
 ayakta kalır. Uç veritabanına da bakar (`SELECT 1`), yani PostgreSQL'e
 ulaşamayan bir sürüm canlıya alınmaz.

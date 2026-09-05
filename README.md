@@ -60,8 +60,14 @@ tek komutla doğrular. Ayrıntı: [`docs/runbook.md`](docs/runbook.md).
 ## Durum
 
 - [x] Alan adı alındı — `rehberim.xyz` (5 Eylül 2026)
-- [ ] Railway projesi kuruldu
-- [ ] PostgreSQL bağlandı, yedekleme provası yapıldı
+- [x] Railway projesi kuruldu — 5 Eylül 2026, geçici adres
+      `rehberim-backend-production.up.railway.app`. Duman testinin yedi
+      kontrolü de geçiyor.
+- [x] PostgreSQL bağlandı — tüm migration'lar uygulandı, `/healthz`
+      `{"status": "ok", "database": true}` dönüyor
+- [ ] **Yedekleme provası yapıldı** — `docs/backup.md`
+- [ ] Yönetici hesabı açıldı (`createsuperuser`)
+- [ ] Volume gerçekten çalışıyor mu denendi (fotoğraf yükle → deploy → duruyor mu)
 - [ ] Sentry bağlandı ve test olayı düştü
 - [ ] Resend alan adı doğrulaması tamam, gerçek adrese test maili gitti
 - [ ] Rehber web yayında, SPA yönlendirmesi çalışıyor
