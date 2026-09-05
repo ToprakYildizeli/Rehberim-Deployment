@@ -35,6 +35,7 @@ alırlar (`--dart-define=API_BASE_URL=https://api.rehberim.xyz/api`).
 | [`docs/web-deploy.md`](docs/web-deploy.md) | Rehber web'ini yayına alırken |
 | [`docs/dns.md`](docs/dns.md) | Alan adı kayıtlarını girerken |
 | [`docs/email-resend.md`](docs/email-resend.md) | Şifre sıfırlama e-postalarını çalışır hâle getirirken |
+| [`docs/sentry.md`](docs/sentry.md) | Hata izlemeyi bağlarken — **kişisel veri notunu oku** |
 | [`docs/backup.md`](docs/backup.md) | **İlk dağıtımdan önce.** Yedeği geri yükleyemiyorsan yedeğin yok |
 | [`docs/runbook.md`](docs/runbook.md) | Her dağıtımdan sonra ve bir şey bozulduğunda |
 
@@ -61,6 +62,7 @@ tek komutla doğrular. Ayrıntı: [`docs/runbook.md`](docs/runbook.md).
 - [x] Alan adı alındı — `rehberim.xyz` (5 Eylül 2026)
 - [ ] Railway projesi kuruldu
 - [ ] PostgreSQL bağlandı, yedekleme provası yapıldı
+- [ ] Sentry bağlandı ve test olayı düştü
 - [ ] Resend alan adı doğrulaması tamam, gerçek adrese test maili gitti
 - [ ] Rehber web yayında, SPA yönlendirmesi çalışıyor
 - [ ] HSTS açıldı (HTTPS doğrulandıktan **sonra**)
