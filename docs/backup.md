@@ -64,12 +64,24 @@ Railway volume'ünün içeriğini düzenli olarak dışarı al. Avatarlar kritik
 kaybolursa kullanıcılar yeniden yükler. Ama volume'ün **bağlı olduğunu**
 doğrulamak kritik: bağlı değilse her dağıtımda silinirler ve bu sessizce olur.
 
+Volume'ün bağlı olduğunu **yeniden dağıtımdan sonra** doğrula. Grafiklerde
+"Volume Usage" görünmesi yeterli değil: `/app/media`'ya yazabilmek oranın volume
+mü yoksa konteynerin kendi diski mi olduğunu söylemez, ikisinde de yazma çalışır.
+Fark yalnız yeni bir konteynerde ortaya çıkar.
+
 ```bash
-scripts/smoke.sh https://api.rehberim.xyz   # once temel akislar
+railway ssh
+echo "volume testi" > /app/media/test.txt
+# --- Railway'de Redeploy ---
+railway ssh
+cat /app/media/test.txt      # yazi geldiyse kalici
+rm /app/media/test.txt       # SILMEYI EN SONA BIRAK
 ```
 
-Sonra bir profil fotoğrafı yükle, **yeni bir dağıtım yap**, fotoğrafın hâlâ
-orada olduğunu gör. Volume'ün gerçekten çalıştığının tek kanıtı budur.
+⚠️ Test dosyasını **redeploy'dan önce silme.** İlk denemede öyle oldu ve sonuç
+"dosya yok" çıktı — volume bozuk sanıldı, oysa dosyayı silen bizdik.
+
+**Yapıldı ve geçti (5 Eylül 2026):** konteyner kimliği değişti, dosya yerinde kaldı.
 
 ## Ne sıklıkta
 

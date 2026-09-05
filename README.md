@@ -66,8 +66,10 @@ tek komutla doğrular. Ayrıntı: [`docs/runbook.md`](docs/runbook.md).
 - [x] PostgreSQL bağlandı — tüm migration'lar uygulandı, `/healthz`
       `{"status": "ok", "database": true}` dönüyor
 - [ ] **Yedekleme provası yapıldı** — `docs/backup.md`
-- [ ] Yönetici hesabı açıldı (`createsuperuser`)
-- [ ] Volume gerçekten çalışıyor mu denendi (fotoğraf yükle → deploy → duruyor mu)
+- [x] Yönetici hesabı açıldı (`createsuperuser`) — 5 Eylül 2026
+- [x] **Volume kalıcılığı kanıtlandı** — 5 Eylül 2026: `/app/media`'ya dosya
+      yazıldı, yeniden dağıtım yapıldı (konteyner kimliği değişti), dosya
+      yerinde duruyordu.
 - [ ] Sentry bağlandı ve test olayı düştü
 - [ ] Resend alan adı doğrulaması tamam, gerçek adrese test maili gitti
 - [ ] Rehber web yayında, SPA yönlendirmesi çalışıyor
