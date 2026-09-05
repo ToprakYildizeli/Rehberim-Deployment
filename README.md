@@ -72,5 +72,7 @@ tek komutla doğrular. Ayrıntı: [`docs/runbook.md`](docs/runbook.md).
       yerinde duruyordu.
 - [ ] Sentry bağlandı ve test olayı düştü
 - [ ] Resend alan adı doğrulaması tamam, gerçek adrese test maili gitti
-- [ ] Rehber web yayında, SPA yönlendirmesi çalışıyor
+- [x] Rehber web yayında — `rehberim-frontend-web.vercel.app` (Vercel),
+      5 Eylül 2026. CORS açıldı, kayıt zinciri uçtan uca doğrulandı.
+- [ ] SPA yönlendirmesi denendi (`/panel`'de F5, `/sifre-sifirla/abc/def`)
 - [ ] HSTS açıldı (HTTPS doğrulandıktan **sonra**)

@@ -28,6 +28,37 @@ Sonra elle iki şey:
 | Sıfırlama isteği 429 | Hız sınırı (IP başına 5/saat) | Beklenen davranış, bekle |
 | Admin formu "CSRF doğrulaması başarısız" | `DJANGO_CSRF_TRUSTED_ORIGINS` eksik | Variables |
 
+## ⚠️ Railway her zaman son commit'i çekmiyor
+
+**5 Eylül 2026'da yaşandı ve bir saat kaybettirdi.** Bir ortam değişkeni
+eklendiğinde Railway yeniden dağıttı, ama `main`'in ucunu değil **son dağıtımın
+kaynağını** yeniden derledi — üç commit geride bir sürümü. O sürümde sağlık
+ucunun yönlendirme muafiyeti yoktu, yoklama `301` aldı, hiçbir replika sağlıklı
+sayılmadı ve adres `"Application not found"` döndürmeye başladı.
+
+Kafa karıştıran şey şuydu: **kodda hiçbir sorun yoktu.** `origin/main`'de
+düzeltme duruyordu, aynı imaj yerelde üretilip Railway'in gönderdiği isteğin
+birebir aynısı atıldığında `200` dönüyordu.
+
+**Bir dağıtım açıklanamaz biçimde başarısız olduğunda İLK bakılacak yer
+Deployments → Source satırındaki commit özetidir.** `main`'in ucu değilse sorun
+kodda değil, Railway'in ne derlediğindedir.
+
+Çözüm: arayüzden "deploy latest commit", ya da `main`'e boş bir commit atıp
+tetiklemek:
+
+```bash
+git commit --allow-empty -m "Railway'i son commit'i çekmeye zorla"
+git push
+```
+
+## Yeni dağıtımdan hemen sonra 404 görmek normal
+
+Eski konteyner kaldırılıp yenisi ayağa kalkana dek adres kısa süre `404`
+döndürebilir; duman testi o aralıkta çalışırsa yanıltıcı hata verir. Bir dakika
+bekleyip tekrar çalıştır. (Volume bağlı olduğu için Railway kesintisiz geçiş
+yapamıyor — bir volume aynı anda tek konteynere bağlanabiliyor.)
+
 ## Geri alma
 
 Railway önceki dağıtıma dönmeyi destekliyor. **Ama migration geri alınmaz:**
