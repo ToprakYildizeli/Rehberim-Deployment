@@ -11,6 +11,22 @@ Sonra elle iki şey:
 - Rehber web'inde giriş yap
 - `/panel`'de F5'e bas (SPA yönlendirmesi)
 
+## Canlı adresler
+
+| Ne | Adres |
+|---|---|
+| API | `https://api.rehberim.xyz/api` |
+| Sağlık ucu | `https://api.rehberim.xyz/healthz` |
+| Admin | `https://api.rehberim.xyz/admin/` |
+| Rehber web | `https://www.rehberim.xyz` |
+| Yedek (Railway) | `https://rehberim-backend-production.up.railway.app` |
+
+Railway'in geçici adresi bilerek bırakıldı: alan adı tarafında bir şey bozulursa
+elde çalışan ikinci bir kapı kalsın diye. `ALLOWED_HOSTS` ikisini de kabul ediyor.
+
+Mobil uygulamalar derlenirken:
+`--dart-define=API_BASE_URL=https://api.rehberim.xyz/api`
+
 ## Belirtiden sebebe
 
 | Belirti | Muhtemel sebep | Bakılacak yer |
@@ -26,6 +42,9 @@ Sonra elle iki şey:
 | Mail geliyor ama gereksiz postada | SPF/DKIM/DMARC eksik | [`dns.md`](dns.md) |
 | Sıfırlama bağlantısı 404 | SPA yönlendirmesi yok | [`web-deploy.md`](web-deploy.md) |
 | Sıfırlama isteği 429 | Hız sınırı (IP başına 5/saat) | Beklenen davranış, bekle |
+| Yeni alan adında her istek 400 | `DJANGO_ALLOWED_HOSTS`'ta yok | Variables — alan adı eklenince güncellenmeli |
+| Arayüz açılıyor, "Kayıt başarısız" | Yeni alan adı CORS listesinde yok | `DJANGO_CORS_ALLOWED_ORIGINS` |
+| Yeni alan adı sertifika hatası | Sertifika henüz çıkmadı | Birkaç dakika bekle; Railway/Vercel doğrulamayı bitirsin |
 | Admin formu "CSRF doğrulaması başarısız" | `DJANGO_CSRF_TRUSTED_ORIGINS` eksik | Variables |
 
 ## ⚠️ Railway her zaman son commit'i çekmiyor

@@ -17,8 +17,8 @@ taşıyordu — dağıtım artık doğrudan kaynak repo'lardan yapılıyor.
 
 | Parça | Kaynak repo | Nerede çalışır | Adres |
 |---|---|---|---|
-| Backend (Django + DRF) | `ToprakYildizeli/Rehberim-Backend` | Railway | `api.rehberim.xyz` |
-| Rehber web (React) | `ToprakYildizeli/Rehberim-Frontend-Web` | statik barındırma | `rehberim.xyz` |
+| Backend (Django + DRF) | `ToprakYildizeli/Rehberim-Backend` | Railway | **`api.rehberim.xyz`** ✅ |
+| Rehber web (React) | `ToprakYildizeli/Rehberim-Frontend-Web` | Vercel | **`www.rehberim.xyz`** ✅ |
 | Öğrenci mobil (Flutter) | `YunusCelik21/Rehberim-Frontend-Ogrenci` | mağaza / cihaz | — |
 | Veli mobil (Flutter) | `YunusCelik21/Rehberim-Frontend-Veli` | mağaza / cihaz | — |
 | PostgreSQL | — | Railway eklentisi | iç ağ |
@@ -59,7 +59,11 @@ tek komutla doğrular. Ayrıntı: [`docs/runbook.md`](docs/runbook.md).
 
 ## Durum
 
-- [x] Alan adı alındı — `rehberim.xyz` (5 Eylül 2026)
+> **CANLIDA (5 Eylül 2026).** Backend `api.rehberim.xyz`, rehber web
+> `www.rehberim.xyz`. Kayıt ve giriş uçtan uca çalışıyor, duman testinin yedi
+> kontrolü de geçiyor.
+
+- [x] Alan adı alındı ve bağlandı — `rehberim.xyz` (5 Eylül 2026, Natro DNS)
 - [x] Railway projesi kuruldu — 5 Eylül 2026, geçici adres
       `rehberim-backend-production.up.railway.app`. Duman testinin yedi
       kontrolü de geçiyor.
@@ -75,4 +79,7 @@ tek komutla doğrular. Ayrıntı: [`docs/runbook.md`](docs/runbook.md).
 - [x] Rehber web yayında — `rehberim-frontend-web.vercel.app` (Vercel),
       5 Eylül 2026. CORS açıldı, kayıt zinciri uçtan uca doğrulandı.
 - [ ] SPA yönlendirmesi denendi (`/panel`'de F5, `/sifre-sifirla/abc/def`)
+- [ ] **Kök `rehberim.xyz` açılmıyor** — yalnız `www` çalışıyor. Natro'daki A
+      kaydı Vercel'in IP'sine (`76.76.21.21`) çevrilmeli; eski park IP'si
+      (`85.159.66.93`) kalmış olabilir.
 - [ ] HSTS açıldı (HTTPS doğrulandıktan **sonra**)
