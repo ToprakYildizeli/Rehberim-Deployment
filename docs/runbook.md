@@ -38,6 +38,7 @@ Mobil uygulamalar derlenirken:
 | Arayüz açılıyor ama hiçbir veri gelmiyor | CORS | `DJANGO_CORS_ALLOWED_ORIGINS` |
 | Admin arayüzü stilsiz | `collectstatic` çalışmamış | Dağıtım günlüğü, imaj derlemesi |
 | Profil fotoğrafları dağıtımdan sonra kayboldu | Volume bağlı değil | Railway → volume, `/app/media` |
+| Fotoğraf yükleme 500, günlükte traceback yok | Volume root'a ait, uygulama yazamıyor | Aşağıdaki bölüm |
 | Şifre sıfırlama maili gelmiyor | SMTP tanımsız ya da DNS eksik | `DJANGO_EMAIL_HOST`, [`email-resend.md`](email-resend.md) |
 | Mail geliyor ama gereksiz postada | SPF/DKIM/DMARC eksik | [`dns.md`](dns.md) |
 | Sıfırlama bağlantısı 404 | SPA yönlendirmesi yok | [`web-deploy.md`](web-deploy.md) |
@@ -46,6 +47,30 @@ Mobil uygulamalar derlenirken:
 | Arayüz açılıyor, "Kayıt başarısız" | Yeni alan adı CORS listesinde yok | `DJANGO_CORS_ALLOWED_ORIGINS` |
 | Yeni alan adı sertifika hatası | Sertifika henüz çıkmadı | Birkaç dakika bekle; Railway/Vercel doğrulamayı bitirsin |
 | Admin formu "CSRF doğrulaması başarısız" | `DJANGO_CSRF_TRUSTED_ORIGINS` eksik | Variables |
+
+## ⚠️ Bağlanan disk root'a ait gelir
+
+**Belirti (6 Eylül 2026):** `POST /api/auth/me/avatar/` → 500, gövde boş HTML,
+erişim günlüğünde yalnız `500 145`.
+
+Railway volume'ü konteynerin dışından bağlar ve dizin `root:root 755` olur;
+imajın kendi sahiplik ayarı bu bağlamayla üzerine yazılır. Uygulama root
+olarak çalışmadığı için altına klasör açamaz.
+
+**Yanıltıcı yanı:** `railway ssh` **root** olarak bağlanır. Elle
+`touch /app/media/deneme` çalışır, uygulama yine de yazamaz. Kontrol ederken
+kullanıcıya bakın:
+
+```bash
+railway ssh "ls -ldn /app/media"
+```
+
+Sahip `10001 10001` olmalı. `0 0` görüyorsanız giriş betiğindeki `chown`
+çalışmamış demektir — açılış günlüğünde `UYARI: ... sahipliği düzeltilemedi`
+satırını arayın.
+
+Düzeltme `docker-entrypoint.sh` içinde: konteyner root açılır, `chown` yapar,
+`setpriv` ile uid 10001'e düşer. Ayrıntı: `Rehberim-Backend/docs/deployment.md`.
 
 ## ⚠️ Railway her zaman son commit'i çekmiyor
 

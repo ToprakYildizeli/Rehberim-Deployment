@@ -39,6 +39,11 @@ Ayar dosyamız `postgresql://` şemasını ve `?sslmode=` gibi parametreleri
 dosya sistemi geçicidir; yüklemeler diskte durmalı. 5 GB avatar için fazlasıyla
 yeter.
 
+⚠️ **Disk root'a ait bağlanır.** Uygulama root olarak çalışmadığı için sahipliği
+açılışta `docker-entrypoint.sh` düzeltiyor. Panelde yapılacak bir şey yok, ama
+fotoğraf yükleme 500 dönüyorsa ilk bakılacak yer burası — bkz.
+[`runbook.md`](runbook.md).
+
 Ayrı bir web sunucusu olmadığı için yüklemeleri Django'nun kendisi servis eder:
 `DJANGO_SERVE_MEDIA=1`. Verimli değil ama avatar ölçeğinde sorun çıkarmaz.
 
