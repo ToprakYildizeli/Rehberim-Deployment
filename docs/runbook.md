@@ -88,6 +88,15 @@ birebir aynısı atıldığında `200` dönüyordu.
 Deployments → Source satırındaki commit özetidir.** `main`'in ucu değilse sorun
 kodda değil, Railway'in ne derlediğindedir.
 
+Panele girmeden de sorulabilir:
+
+```bash
+railway status --json | grep -o '"commitHash":"[^"]*"' | head -1
+```
+
+Çıkan özeti `git rev-parse HEAD` ile karşılaştırın; tutmuyorsa boş bir commit
+atıp (`git commit --allow-empty`) yeniden dağıtım tetikleyin.
+
 Çözüm: arayüzden "deploy latest commit", ya da `main`'e boş bir commit atıp
 tetiklemek:
 
