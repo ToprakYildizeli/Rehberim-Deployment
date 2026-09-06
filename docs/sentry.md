@@ -3,10 +3,19 @@
 Bir şey patladığında haberdar olmanın tek yolu. `SENTRY_DSN` tanımlanmazsa Sentry
 **hiç devreye girmez** — yani kurmadan da uygulama çalışır, sadece kör kalırsın.
 
+**Durum: kuruldu (6 Eylül 2026).** `SENTRY_DSN` üretimde tanımlı, proje
+`rehberim-backend` (AB bölgesi). Performans izleme kapalı.
+
 ## Kurulum
 
 1. Sentry'de hesap aç, **Django** projesi oluştur.
-2. Verdiği DSN'i Railway'e gir:
+2. Verdiği DSN'i Railway'e gir — panele girmeden de olur:
+
+```bash
+printf '%s' '<DSN>' | railway variables --service Rehberim-Backend --set-from-stdin SENTRY_DSN
+```
+
+   ya da panelden:
 
 ```
 SENTRY_DSN=<Sentry'nin verdigi DSN>
@@ -55,11 +64,14 @@ SENTRY_TRACES_SAMPLE_RATE=0.05
 Sentry'yi kurduktan sonra gerçekten olay düştüğünü gör — kurulup çalışmayan bir
 izleyici, hiç kurmamaktan daha kötü, çünkü haberdar olduğunu sanırsın.
 
-Railway'in kabuğundan:
-
 ```bash
-python -c "import sentry_sdk; sentry_sdk.capture_message('kurulum testi')"
+railway ssh "python manage.py shell -c 'import sentry_sdk; sentry_sdk.capture_message(\"kurulum testi\"); sentry_sdk.flush()'"
 ```
+
+⚠️ `python -c "import sentry_sdk; sentry_sdk.capture_message(...)"` **çalışmaz** —
+`sentry_sdk.init` yalnız Django ayarları okunurken çağrılıyor, düz bir `python -c`
+süreci Sentry'yi hiç kurmaz ve olay sessizce kaybolur. `manage.py shell` Django'yu
+kurduğu için doğru yol odur. `flush()` de şart: süreç olay gönderilmeden kapanır.
 
 Sentry panelinde birkaç saniye içinde görünmeli. Görünmüyorsa DSN yanlış ya da
 girilmemiştir.
