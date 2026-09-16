@@ -11,9 +11,15 @@ yazılmaz** (bu repo herkese açık).
 | `api` | CNAME | Railway'in verdiği hedef | Railway → alan adı ekranı | Backend API |
 | `@` | A / ALIAS | Barındırmanın verdiği | Vercel / Cloudflare Pages | Rehber web |
 | `www` | CNAME | Barındırmanın verdiği | aynı | Rehber web |
-| `@` | TXT | `v=spf1 include:...` | Resend | E-posta yetkilendirme (SPF) |
-| `resend._domainkey` | TXT/CNAME | Resend'in verdiği | Resend | E-posta imzası (DKIM) |
-| `_dmarc` | TXT | `v=DMARC1; p=none; rua=mailto:...` | elle | E-posta raporlama (DMARC) |
+| `send` | CNAME | Resend'in verdiği | Resend | E-posta yetkilendirme (SPF) |
+| `rsend` | CNAME | Resend'in verdiği | Resend | aynı (bölge sunucusu) |
+| `resend._domainkey` | TXT | Resend'in verdiği `p=...` | Resend | E-posta imzası (DKIM) |
+| `_dmarc` | TXT | `v=DMARC1; p=none;` | elle | E-posta raporlama (DMARC) |
+
+⚠️ **SPF artık `@` üzerinde TXT değil.** Resend SPF'i `send`/`rsend` alt
+alanlarına CNAME ile bağlıyor; kök alan adına `v=spf1 ...` yazmak gerekmiyor
+(16 Eylül 2026'da böyle kuruldu ve doğrulandı). Eski belge `@` TXT'si
+anlatıyordu, o yol artık geçerli değil.
 
 ## Sıra önemli
 
@@ -41,9 +47,17 @@ gereksiz klasörüne atabilir. Bu yüzden bunlar isteğe bağlı değil, zorunlu
 
 ```bash
 dig +short api.rehberim.xyz
-dig +short TXT rehberim.xyz          # SPF görünmeli
-dig +short TXT _dmarc.rehberim.xyz   # DMARC görünmeli
+dig +short TXT resend._domainkey.rehberim.xyz   # DKIM (p=... ile başlar)
+dig +short CNAME send.rehberim.xyz              # SPF zincirinin girişi
+dig +short TXT _dmarc.rehberim.xyz              # DMARC
+dig +short TXT send.forge.rmta.net              # zincir çözülüyor mu (v=spf1 ...)
 ```
+
+DKIM değeri 255 karakterden uzun olduğu için DNS onu parçalara böler;
+`dig` çıktısında tırnaklar arasında görünmesi normaldir. Doğruluğunu
+kontrol ederken parçaları birleştirip Resend'in verdiği değerle
+**karakter karakter** karşılaştır — panelde kaçan tek bir boşluk
+doğrulamayı sessizce düşürür.
 
 DNS yayılması 5 dakika ile birkaç saat arasında sürebilir; hemen görünmemesi
 hata demek değildir.

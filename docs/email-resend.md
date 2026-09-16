@@ -4,31 +4,73 @@
 yoludur:** profil ekranında e-posta kilitli olduğu için şifresini unutan
 kullanıcının başka çıkışı yok. Çalışmazsa kullanıcı hesabını kaybeder.
 
+> **Kuruldu: 16 Eylül 2026.** Aşağıdaki değerler kurulumun gerçekleşmiş
+> hâlidir, öneri değil.
+
 ## Kurulum
 
 1. Resend'de hesap aç, `rehberim.xyz` alan adını ekle.
-2. Resend'in verdiği SPF ve DKIM kayıtlarını DNS'e gir → [`dns.md`](dns.md).
-3. Alan adı **doğrulandı** görünene kadar bekle (dakikalar sürebilir).
-4. SMTP bilgilerini al ve Railway'e gir:
+2. Resend'in verdiği DKIM ve SPF kayıtlarını DNS'e gir → [`dns.md`](dns.md).
+   **SPF artık TXT değil CNAME** (`send`, `rsend`).
+3. Alan adı **doğrulandı** görünene kadar bekle, sonra "Enable Sending".
+4. API anahtarı üret (Sending access) ve Railway'e gir:
 
 ```
-DJANGO_EMAIL_HOST=<Resend'in verdiği sunucu>
-DJANGO_EMAIL_PORT=587
-DJANGO_EMAIL_HOST_USER=<Resend'in verdiği kullanıcı>
+DJANGO_EMAIL_HOST=smtp.resend.com
+DJANGO_EMAIL_PORT=2587
+DJANGO_EMAIL_HOST_USER=resend
 DJANGO_EMAIL_HOST_PASSWORD=<Resend API anahtarı>
 DJANGO_EMAIL_USE_TLS=1
 DJANGO_DEFAULT_FROM_EMAIL=Rehberim <noreply@rehberim.xyz>
+DJANGO_PASSWORD_RESET_URL=https://www.rehberim.xyz/sifre-sifirla/{uid}/{token}
 ```
 
 `DJANGO_EMAIL_HOST` **tanımsızsa** Django e-postaları konsola yazar — yerelde
 istenen budur, üretimde sessiz bir arıza demektir. Kurulumun asıl kontrolü bu
 değişkenin dolu olmasıdır.
 
+## ⚠️ Railway 587'yi engelliyor — port 2587
+
+**İlk kurulumda mail hiç gitmedi ve site kilitlenme riskine girdi.** Sebep:
+Railway'den `smtp.resend.com:587`'ye çıkış açılmıyor. Bağlantı reddedilmiyor,
+**hiç dönmüyor**:
+
+```
+File "smtplib.py", line 318, in _get_socket
+    return socket.create_connection((host, port), timeout, ...)
+File "socket.py", line 859, in create_connection
+    sock.connect(sa)
+...
+File "gunicorn/workers/base.py", line 199, in handle_abort
+    sys.exit(1)
+SystemExit: 1
+"POST /api/auth/password-reset/ HTTP/1.1" 500 0
+[INFO] Worker exiting (pid: 8)
+```
+
+**Çözüm:** `DJANGO_EMAIL_PORT=2587`. Resend bu alternatif portu (ve 2465'i)
+tam olarak sağlayıcı engeli için veriyor. 2587'de mail ilk denemede gitti.
+
+**Yan hasar ve kalıcı önlem:** her deneme bir gunicorn işçisini öldürüyordu;
+`WEB_CONCURRENCY=3` ile üç eşzamanlı istek bütün API'yi kilitlerdi — yani
+"şifremi unuttum"a basan üç kullanıcı siteyi düşürebilirdi. Django/smtplib'in
+soket zaman aşımı varsayılanı **süresiz beklemek**. Bunun için
+`EMAIL_TIMEOUT` eklendi (varsayılan 10 sn, `DJANGO_EMAIL_TIMEOUT`).
+
+2587 de bir gün engellenirse sıradaki adım SMTP'yi bırakıp Resend'in **HTTPS
+API**'sine geçmek: 443 çıkışının çalıştığı kesin (Sentry oradan gidiyor),
+küçük bir Django e-posta arka ucu yeter.
+
 ## Sıfırlama bağlantısının adresi
 
 ```
-DJANGO_PASSWORD_RESET_URL=https://rehberim.xyz/sifre-sifirla/{uid}/{token}
+DJANGO_PASSWORD_RESET_URL=https://www.rehberim.xyz/sifre-sifirla/{uid}/{token}
 ```
+
+⚠️ **Tanımsız bırakma.** Varsayılanı `http://localhost:5173/...` — e-posta
+gider ama içindeki bağlantı kullanıcının kendi makinesini gösterir. Sessiz
+arıza. `www` yazılıyor: kök alan adı `www`'ye 308 ile dönüyor, e-postadaki
+bağlantının gereksiz bir yönlendirmeden geçmesine gerek yok.
 
 `{uid}` ve `{token}` sunucu tarafından doldurulur. Adres **rehber web'ini**
 göstermeli: öğrenci ve veli de bağlantıyı telefonunun tarayıcısında açıp orada
