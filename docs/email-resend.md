@@ -98,8 +98,37 @@ Kendini test ederken bu sınıra takılabilirsin; aşınca `429` döner ve bir s
 beklemek gerekir. Sınırı test için geçici yükseltmek yerine beklemek daha iyi —
 sınırın çalıştığını da doğrulamış olursun.
 
+## Hangi mailler gidiyor
+
+| Mail | Tetikleyici | Alıcı |
+|---|---|---|
+| Şifre sıfırlama bağlantısı | `POST /auth/password-reset/` | isteyen |
+| **Şifreniz değişti** | şifre değiştirme **ve** sıfırlama onayı | hesap sahibi |
+| Hoş geldiniz (rol başına 3 metin) | kayıt | kaydolan |
+| Hesabına bir veli bağlandı | veli bağlanması | öğrenci **ve** rehberi |
+| Hesabınız silindi | hesap silme | silinen hesabın adresi |
+
+Şablonlar: `Django/accounts/templates/email/`, gönderim
+`Django/accounts/notifications.py`.
+
+⚠️ **Maile akademik veri yazılmaz** — net, konu ilerlemesi, program içeriği
+yok. Reşit olmayan çocuğun verisini yanlış adrese gidebilecek bir kanala
+taşımak olurdu; bir test şablonları bu kelimelere karşı tarıyor
+(`NotificationEmailTests.test_no_academic_data_in_notification_bodies`).
+
+⚠️ **Şifre sıfırlama dışındaki mailler gönderilemezse işlem geri alınmaz.**
+Hoş geldiniz maili gitmedi diye kaydın `500` dönmesi, kullanıcıya
+sağladığından çok zarar verirdi. Hata yutulurken **loglanıyor**, Sentry
+görüyor.
+
 ## Kota
 
-Resend'in ücretsiz katı günde 100, ayda 3.000 mail. Şifre sıfırlama dışında mail
-göndermiyoruz; bu ölçek uzun süre yeter. İleride haftalık özet e-postası gibi bir
-şey eklenirse kota yeniden değerlendirilmeli.
+Resend'in ücretsiz katı günde 100, ayda 3.000 mail. Bugünkü mail kümesi
+kullanıcı başına birkaç taneden ibaret (kayıtta 1, güvenlik olaylarında 1);
+bir sınıfın aynı gün kaydolması ~30 mail eder, tavan 100. Bu ölçek uzun süre
+yeter.
+
+İleride **haftalık özet** gibi düzenli bir mail eklenirse hesap yeniden
+yapılmalı: 200 öğrencilik bir kurumda veliye haftalık tek mail bile ayda 800
+eder ve günlük 100 sınırına tek seferde çarpar (hepsi pazartesi gider).
+O noktada ya ücretli kata geçilir ya gönderim güne yayılır.
