@@ -53,7 +53,8 @@ echo "→ veli derleniyor"
 # Klasörün tamamı silinmiyor: içindeki `.vercel/` Vercel proje bağlantısı,
 # silinirse sonraki `vercel deploy` yeni bir proje açmaya kalkar.
 mkdir -p "$CIKTI"
-rm -rf "$CIKTI/ogrenci" "$CIKTI/veli" "$CIKTI/index.html" "$CIKTI/vercel.json"
+rm -rf "$CIKTI/ogrenci" "$CIKTI/veli" "$CIKTI/index.html" "$CIKTI/vercel.json" \
+    "$CIKTI/favicon.png" "$CIKTI/apple-touch-icon.png"
 cp -R "$OGRENCI/build/web" "$CIKTI/ogrenci"
 cp -R "$VELI/build/web" "$CIKTI/veli"
 
@@ -63,6 +64,9 @@ cat > "$CIKTI/index.html" <<'HTML'
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rehberim</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#7A1C3B">
 <style>
   :root { color-scheme: light }
   body { font: 16px/1.6 system-ui, sans-serif; margin: 0; min-height: 100vh;
@@ -80,6 +84,10 @@ cat > "$CIKTI/index.html" <<'HTML'
   <a href="/veli/">Veli uygulaması<br><small>Çocuğunuzun programı ve gelişimi</small></a>
 </main>
 HTML
+
+# Kök sayfanın ikonu uygulamalarınkiyle aynı; yoksa Safari sekmede "R" gösterir.
+cp "$CIKTI/ogrenci/favicon.png" "$CIKTI/favicon.png"
+cp "$CIKTI/ogrenci/icons/Icon-192.png" "$CIKTI/apple-touch-icon.png"
 
 # Vercel ayarı: `/ogrenci` → `/ogrenci/`. Eğik çizgisiz adreste de açılsın;
 # uzantılı dosyalara (main.dart.js) dokunmaz.
