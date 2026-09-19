@@ -50,8 +50,10 @@ echo "→ veli derleniyor"
     --base-href /veli/ \
     --dart-define=API_BASE_URL="$API_VELI" >/dev/null )
 
-rm -rf "$CIKTI"
+# Klasörün tamamı silinmiyor: içindeki `.vercel/` Vercel proje bağlantısı,
+# silinirse sonraki `vercel deploy` yeni bir proje açmaya kalkar.
 mkdir -p "$CIKTI"
+rm -rf "$CIKTI/ogrenci" "$CIKTI/veli" "$CIKTI/index.html" "$CIKTI/vercel.json"
 cp -R "$OGRENCI/build/web" "$CIKTI/ogrenci"
 cp -R "$VELI/build/web" "$CIKTI/veli"
 
@@ -78,6 +80,14 @@ cat > "$CIKTI/index.html" <<'HTML'
   <a href="/veli/">Veli uygulaması<br><small>Çocuğunuzun programı ve gelişimi</small></a>
 </main>
 HTML
+
+# Vercel ayarı: `/ogrenci` → `/ogrenci/`. Eğik çizgisiz adreste de açılsın;
+# uzantılı dosyalara (main.dart.js) dokunmaz.
+cat > "$CIKTI/vercel.json" <<'JSON'
+{
+  "trailingSlash": true
+}
+JSON
 
 # Derlenen paketin gerçekten doğru adresi taşıdığını doğrula. Yanlış adresle
 # çıkmak sessiz bir arıza: sayfa açılır, giriş çalışmaz.

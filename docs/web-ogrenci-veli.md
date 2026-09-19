@@ -33,13 +33,24 @@ bir dağıtım. Uygulamalar tarayıcı adres çubuğunu kullanmıyor (Navigator 
 çalışıyorlar), bu yüzden alt yolda çalışmaları için `--base-href` dışında bir
 şey gerekmiyor.
 
-1. Vercel'de yeni proje, **statik** (derleme komutu yok), çıktı klasörü
-   `build/web`.
-2. Alan adı ekle: `app.rehberim.xyz`.
-3. Natro'da CNAME: `app` → Vercel'in verdiği hedef.
+**Kuruldu (19 Eylül 2026).** Vercel projesi **`rehberim-app`** (rehber
+web'inden ayrı), geçici adres `rehberim-app.vercel.app`. Alan adı
+`app.rehberim.xyz`, Natro'da **A kaydı** `app → 76.76.21.21` (Vercel'in
+önerdiği; `www` CNAME ile bağlı, bu değil).
 
-Vercel Flutter'ı kendi derleyemez (imajında Flutter yok). Derleme **yerelde**
-yapılır, `build/web` yüklenir.
+Vercel Flutter'ı kendi derleyemez (imajında Flutter yok) ve projeye git
+bağlı değil. Derleme **yerelde** yapılır, `build/web` yüklenir:
+
+```sh
+scripts/build-web.sh
+cd build/web && npx vercel deploy --prod --yes
+```
+
+`build/web/.vercel/` proje bağlantısıdır; betik onu silmiyor. Silinirse
+`npx vercel link --yes --project rehberim-app` ile yeniden bağlanır —
+bağlamadan `deploy` çalıştırmak **yeni bir proje** açar.
+⚠️ `vercel link` klasöre `.env.local` (OIDC token) yazıyor; yayına
+çıkmıyor (404) ama gereği yok, silinebilir.
 
 ## CORS — atlanırsa hiçbir şey çalışmaz
 
@@ -47,8 +58,11 @@ Mobil uygulamalar CORS'a tabi değildir, **tarayıcı tabidir**. Backend'in
 `DJANGO_CORS_ALLOWED_ORIGINS` değişkenine web adresi eklenmeli:
 
 ```
-DJANGO_CORS_ALLOWED_ORIGINS=https://www.rehberim.xyz,https://app.rehberim.xyz
+DJANGO_CORS_ALLOWED_ORIGINS=https://rehberim.xyz,https://www.rehberim.xyz,https://rehberim-frontend-web.vercel.app,https://app.rehberim.xyz,https://rehberim-app.vercel.app
 ```
+
+(19 Eylül 2026'da bu hâliyle girildi. `rehberim-app.vercel.app` bilerek
+listede: alan adı bozulursa yedek kapı.)
 
 Rehber web'in adresi de listede kalmalı — değişken **tüm** listeyi taşıyor,
 üstüne yazmak eskisini siler.
