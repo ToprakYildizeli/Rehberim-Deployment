@@ -106,6 +106,19 @@ for uygulama in ogrenci veli; do
     fi
 done
 
+# Viewport etiketi de sessiz bir arıza: etiket yokken tarayıcı ~980px'lik bir
+# sanal genişlik kullanıp sayfayı küçültüyor, uygulama telefonda açılıyor ama
+# okunmuyor. Flutter'ın varsayılan şablonunda vardı ve index.html
+# özelleştirilirken bir kez düştü (20 Eylül 2026) — bir daha fark etmeden
+# çıkmasın diye burada denetleniyor.
+for uygulama in ogrenci veli; do
+    if ! grep -q 'name="viewport"' "$CIKTI/$uygulama/index.html"; then
+        echo "HATA: $uygulama/index.html içinde viewport meta etiketi yok." >&2
+        echo "      Mobil yerleşim bu etiket olmadan çalışmaz." >&2
+        exit 1
+    fi
+done
+
 echo
 echo "Hazır: $CIKTI"
 du -sh "$CIKTI/ogrenci" "$CIKTI/veli"
