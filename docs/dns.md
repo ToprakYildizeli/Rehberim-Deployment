@@ -8,9 +8,11 @@ yazılmaz** (bu repo herkese açık).
 
 | Ad | Tür | Değer | Nereden gelir | Ne için |
 |---|---|---|---|---|
-| `api` | CNAME | Railway'in verdiği hedef | Railway → alan adı ekranı | Backend API |
-| `@` | A / ALIAS | Barındırmanın verdiği | Vercel / Cloudflare Pages | Rehber web |
-| `www` | CNAME | Barındırmanın verdiği | aynı | Rehber web |
+| `api` | CNAME | Railway'in verdiği hedef | Railway → alan adı ekranı | YKS backend API |
+| `@` | A / ALIAS | Barındırmanın verdiği | Vercel / Cloudflare Pages | YKS rehber web |
+| `www` | CNAME | Barındırmanın verdiği | aynı | YKS rehber web |
+| `api-lgs` | CNAME | Railway'in verdiği hedef | LGS'nin **ayrı** Railway projesi | LGS backend API |
+| `lgs` | CNAME | Barındırmanın verdiği | Vercel (LGS paneli) | LGS dershane paneli |
 | `send` | CNAME | Resend'in verdiği | Resend | E-posta yetkilendirme (SPF) |
 | `rsend` | CNAME | Resend'in verdiği | Resend | aynı (bölge sunucusu) |
 | `resend._domainkey` | TXT | Resend'in verdiği `p=...` | Resend | E-posta imzası (DKIM) |
@@ -20,6 +22,11 @@ yazılmaz** (bu repo herkese açık).
 alanlarına CNAME ile bağlıyor; kök alan adına `v=spf1 ...` yazmak gerekmiyor
 (16 Eylül 2026'da böyle kuruldu ve doğrulandı). Eski belge `@` TXT'si
 anlatıyordu, o yol artık geçerli değil.
+
+⚠️ **LGS kayıtları ayrı kaynaklardan gelir.** `api-lgs`'in hedefi YKS'nin
+Railway projesi değil, LGS'nin kendi projesidir; `lgs`'in hedefi de ayrı bir
+Vercel projesidir. Hedefleri karıştırmak, bir ürünün alan adını diğerinin
+sunucusuna bağlamak demek.
 
 ## Sıra önemli
 
@@ -47,6 +54,8 @@ gereksiz klasörüne atabilir. Bu yüzden bunlar isteğe bağlı değil, zorunlu
 
 ```bash
 dig +short api.rehberim.xyz
+dig +short api-lgs.rehberim.xyz                 # LGS backend
+dig +short lgs.rehberim.xyz                     # LGS paneli
 dig +short TXT resend._domainkey.rehberim.xyz   # DKIM (p=... ile başlar)
 dig +short CNAME send.rehberim.xyz              # SPF zincirinin girişi
 dig +short TXT _dmarc.rehberim.xyz              # DMARC

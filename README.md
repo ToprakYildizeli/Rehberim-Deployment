@@ -13,7 +13,18 @@ Daha önce burada uygulamanın bir kopyası duruyordu; aynı kopya özel
 sürümde elle eşitleme demekti ve bir gün eski migration'la üretime çıkma riski
 taşıyordu — dağıtım artık doğrudan kaynak repo'lardan yapılıyor.
 
-## Parçalar
+## İki ürün
+
+Rehberim 8 Ekim 2026'dan beri **iki ayrı üründür**: lise/YKS tarafı (canlıda)
+ve LGS dershane tarafı (henüz dağıtılmadı). Kod, veritabanı ve dağıtım
+**tamamen ayrı** — ortak kod yok, paylaşılan veritabanı yok, ayrı Railway
+projeleri.
+
+⚠️ Bir işe başlarken **önce hangi ürün olduğunu belirle.** Repo adları
+birbirine çok benziyor (`Rehberim-Backend` ↔ `Rehberim-Backend-LGS`); yanlış
+projenin değişkenine dokunmak en pahalı hata.
+
+### YKS tarafı
 
 | Parça | Kaynak repo | Nerede çalışır | Adres |
 |---|---|---|---|
@@ -24,6 +35,17 @@ taşıyordu — dağıtım artık doğrudan kaynak repo'lardan yapılıyor.
 | PostgreSQL | — | Railway eklentisi | iç ağ |
 | E-posta (şifre sıfırlama) | — | Resend | `noreply@rehberim.xyz` |
 
+### LGS tarafı
+
+| Parça | Kaynak repo | Nerede çalışır | Adres |
+|---|---|---|---|
+| Backend (Django + DRF) | `ToprakYildizeli/Rehberim-Backend-LGS` | Railway (**ayrı proje**) | `api-lgs.rehberim.xyz` ⏳ |
+| Dershane paneli (React + TS) | `ToprakYildizeli/Rehberim-Frontend-LGS` | Vercel | `lgs.rehberim.xyz` ⏳ |
+| PostgreSQL | — | Railway eklentisi (**ayrı**) | iç ağ |
+
+LGS'de **kalıcı disk (volume) yok** — kullanıcı yüklemesi olmadığı için
+gerekmiyor. YKS'de gerekiyor (profil fotoğrafları).
+
 Mobil uygulamalar barındırma istemez; yalnızca derleme sırasında API adresini
 alırlar (`--dart-define=API_BASE_URL=https://api.rehberim.xyz/api`).
 
@@ -31,8 +53,10 @@ alırlar (`--dart-define=API_BASE_URL=https://api.rehberim.xyz/api`).
 
 | Belge | Ne zaman |
 |---|---|
-| [`docs/railway-backend.md`](docs/railway-backend.md) | Backend'i ilk kez kurarken |
-| [`docs/web-deploy.md`](docs/web-deploy.md) | Rehber web'ini yayına alırken |
+| [`docs/railway-backend.md`](docs/railway-backend.md) | **YKS** backend'ini ilk kez kurarken |
+| [`docs/web-deploy.md`](docs/web-deploy.md) | **YKS** rehber web'ini yayına alırken |
+| [`docs/lgs-railway.md`](docs/lgs-railway.md) | **LGS** backend'ini kurarken — YKS'den farkları başta yazılı |
+| [`docs/lgs-web.md`](docs/lgs-web.md) | **LGS** dershane panelini yayına alırken |
 | [`docs/dns.md`](docs/dns.md) | Alan adı kayıtlarını girerken |
 | [`docs/email-resend.md`](docs/email-resend.md) | Şifre sıfırlama e-postalarını çalışır hâle getirirken |
 | [`docs/sentry.md`](docs/sentry.md) | Hata izlemeyi bağlarken — **kişisel veri notunu oku** |
@@ -41,21 +65,30 @@ alırlar (`--dart-define=API_BASE_URL=https://api.rehberim.xyz/api`).
 
 ## Ortam değişkenleri
 
-- [`env/backend.env.example`](env/backend.env.example) — Railway'e girilecekler
-- [`env/web.env.example`](env/web.env.example) — statik barındırmaya girilecekler
+- [`env/backend.env.example`](env/backend.env.example) — YKS backend'i
+- [`env/web.env.example`](env/web.env.example) — YKS rehber web'i
+- [`env/lgs-backend.env.example`](env/lgs-backend.env.example) — LGS backend'i
+- [`env/lgs-web.env.example`](env/lgs-web.env.example) — LGS paneli (değişken gerekmiyor)
 
-Backend'in okuduğu değişkenlerin tam listesi ve açıklamaları kaynak repo'da:
-`Rehberim-Backend/Django/.env.example`. Buradaki dosya onun **üretim için
+Backend'lerin okuduğu değişkenlerin tam listesi ve açıklamaları kaynak
+repo'larda: `Rehberim-Backend/Django/.env.example` ve
+`Rehberim-Backend-LGS/.env.example`. Buradaki dosyalar onların **üretim için
 doldurulmuş şablonu**dur; ikisi çelişirse kaynak repo kazanır.
+
+⚠️ İki ürünün değişken adları her yerde aynı değil: CORS, YKS'de
+`DJANGO_CORS_ALLOWED_ORIGINS`, LGS'de `CORS_ALLOWED_ORIGINS`.
 
 ## Dağıtım sonrası
 
 ```bash
-scripts/smoke.sh https://api.rehberim.xyz
+scripts/smoke.sh https://api.rehberim.xyz            # YKS
+scripts/smoke-lgs.sh https://api-lgs.rehberim.xyz    # LGS
 ```
 
 Sağlık ucu, kimlik denetimi, admin arayüzü ve statik dosyaların ayakta olduğunu
-tek komutla doğrular. Ayrıntı: [`docs/runbook.md`](docs/runbook.md).
+tek komutla doğrular. İki betik ayrı: uçlar farklı (LGS'nin giriş ucu
+`/api/auth/token/`, YKS'nin `/api/auth/login/`). Ayrıntı:
+[`docs/runbook.md`](docs/runbook.md).
 
 ## Durum
 
@@ -83,3 +116,21 @@ tek komutla doğrular. Ayrıntı: [`docs/runbook.md`](docs/runbook.md).
       kaydı Vercel'in IP'sine (`76.76.21.21`) çevrilmeli; eski park IP'si
       (`85.159.66.93`) kalmış olabilir.
 - [ ] HSTS açıldı (HTTPS doğrulandıktan **sonra**)
+
+### LGS tarafı
+
+> **HENÜZ CANLIDA DEĞİL.** Kod tarafı 10 Ekim 2026'da üretime hazırlandı
+> (Dockerfile, HTTPS sertleştirmesi, günlükleme, CI, şifre sıfırlama, paket
+> zorlaması); Railway/Vercel kurulumu yapılmadı.
+
+- [ ] Railway projesi açıldı (**YKS'den ayrı**) — [`docs/lgs-railway.md`](docs/lgs-railway.md)
+- [ ] PostgreSQL bağlandı (**ayrı eklenti**), migration'lar uygulandı
+- [ ] `api-lgs.rehberim.xyz` bağlandı, sertifika çıktı
+- [ ] Yönetici hesabı açıldı (`createsuperuser`) — paket yönetimi admin'den
+- [ ] Dershane paneli yayında — `lgs.rehberim.xyz`, [`docs/lgs-web.md`](docs/lgs-web.md)
+- [ ] SPA yönlendirmesi denendi (`/denemeler`'de F5, `/sifre-sifirla/abc/def`)
+- [ ] E-posta bağlandı (**port 2587**) — olmadan şifre sıfırlama çalışmaz
+- [ ] Yedekleme provası yapıldı — [`docs/backup.md`](docs/backup.md)
+- [ ] `scripts/smoke-lgs.sh` tüm kontrolleri geçiyor
+- [ ] HSTS açıldı (HTTPS doğrulandıktan **sonra**)
+- [ ] Sentry — **LGS kodunda entegrasyon yok**, önce yazılması gerekir
