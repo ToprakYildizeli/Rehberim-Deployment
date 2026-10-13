@@ -133,6 +133,15 @@ scripts/smoke-lgs.sh https://api-lgs.rehberim.xyz
 
 Sonra paneli yayına al: [`lgs-web.md`](lgs-web.md).
 
+**Sentry'yi de bağla** (13 Ekim 2026'dan beri kodda var): Sentry'de LGS için
+ayrı bir proje aç ve DSN'i `SENTRY_DSN` olarak Railway'e yaz. Tanımlanmazsa
+uygulama çalışır ama yakalanmamış istisnanın tek izi sunucu günlüğü olur —
+yani bir şeyin bozulduğunu ancak biri söylerse öğrenirsin.
+
+⚠️ İstek gövdesi Sentry'ye hiçbir koşulda gitmiyor (giriş gövdesinde açık
+şifre, öğrenci kaydında çocuğun adı, karne içe aktarmada bir sınıfın bütün
+adları var). Bu, ayar değil **kodda** sabit.
+
 ---
 
 ## Henüz yapılmayanlar
@@ -142,7 +151,6 @@ Sonra paneli yayına al: [`lgs-web.md`](lgs-web.md).
   hesabı kullanılabilir; ayrı bir gönderen adresi (`noreply@rehberim.xyz`
   yeter) ve **port 2587** gerekir — Railway 587'yi engelliyor, ayrıntı
   [`email-resend.md`](email-resend.md).
-- **Sentry.** LGS kodunda Sentry entegrasyonu yok (YKS'de var).
 - **Yedekleme provası.** [`backup.md`](backup.md) yordamı LGS veritabanı için
   de uygulanmalı. *Yedeği geri yükleyemiyorsan yedeğin yok.*
 - **HSTS.** HTTPS'in çalıştığı gözle doğrulandıktan sonra
