@@ -2,6 +2,10 @@
 
 > **İlk dağıtımdan önce okunur.** Geri yükleyemediğin bir yedek, yedek değildir.
 
+**İki ürün, iki ayrı veritabanı.** YKS ve LGS ayrı Railway projelerinde, ayrı
+PostgreSQL eklentileriyle çalışıyor. Yedek de ayrı alınır; bir ürünün dökümü
+diğerine geri yüklenemez (şemalar farklı, `AUTH_USER_MODEL` bile ayrı).
+
 Yedeklenmesi gereken iki şey var:
 
 | Ne | Nerede | Kaybedilirse |
@@ -12,6 +16,36 @@ Yedeklenmesi gereken iki şey var:
 Kod yedeklenmez — GitHub'da duruyor.
 
 ## Veritabanı yedeği
+
+### Betikle (olağan yol)
+
+```bash
+cd ~/Desktop/Rehberim/Rehberim-Backend-LGS      # ya da Rehberim-Backend (YKS)
+../Rehberim-Deployment/scripts/yedek-al.sh lgs  # ya da: yks
+```
+
+Betik (`scripts/yedek-al.sh`) tüneli açar, dökümü alır, **dosyanın gerçekten
+okunabildiğini doğrular** ve üretimdeki satır sayılarını yazdırır. Hiçbir şey
+yazmaz; üretimde çalıştırmak güvenlidir. Dosya
+`~/Desktop/Rehberim/yedekler/<proje>-<tarih>.dump` olarak, `chmod 600` ile
+kaydedilir.
+
+- ⚠️ **Yanlış ürünü dökme koruması var:** betik bağlı Railway projesinin
+  **adına** bakıyor, klasör adına değil. `yedek-al.sh yks` komutunu LGS'ye
+  bağlı bir dizinde çalıştırırsan durur. Dosya adı da projenin adını taşır,
+  yani dökümün hangi üründen geldiği dosyadan okunur.
+- YKS tarafı için **bir kez** `railway link` gerekiyor (LGS deposu bağlı).
+- Döküm **boş da olabilir** ve bu sessiz bir arıza olurdu; betik bu yüzden
+  `pg_restore --list` ile nesne sayar ve `pg_stat_user_tables`'dan satır
+  sayılarını basar. Beklediğinden küçük bir sayı görürsen dosyayı saklama,
+  sebebini bul.
+- Betik **saklama/silme yapmıyor** (bilerek): eski yedekleri otomatik silen
+  bir betik, bir gün tek sağlam yedeği de siler. Dizini elle gözden geçir.
+
+İlk çalıştırma (14 Ekim 2026, LGS üretimi): 192 KB · 311 nesne · katalog
+dışında satır yok — üretim veritabanı henüz boş, karar gereği.
+
+### Elle (betik çalışmazsa)
 
 **Sürüm uyarısı.** Üretimde PostgreSQL **18** çalışıyor
 (`ghcr.io/railwayapp-templates/postgres-ssl:18`). `pg_dump` sunucudan **eski
@@ -119,3 +153,66 @@ rm /app/media/test.txt       # SILMEYI EN SONA BIRAK
 Kullanıcı sayısı azken haftalık yeterli. Gerçek öğrenci verisi girmeye
 başladığında günlüğe çık — bir haftalık program ve deneme kaydını yeniden
 girmek kimsenin yapmak isteyeceği bir şey değil.
+
+**YKS şu an canlı ve gerçek rehber verisi taşıyor; LGS üretimi boş.** Yani
+bugünkü kayıp riski tamamen YKS tarafında.
+
+## Otomatikleştirme (launchd)
+
+Elle alınan yedek, alınmayı hatırladığın sürece yedektir. Günlük bir iş
+tanımla — `cron` değil `launchd`, macOS'ta uyuyan makinede kaçan işi
+sonra çalıştıran tek yol o.
+
+`~/Library/LaunchAgents/xyz.rehberim.yedek.plist`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>xyz.rehberim.yedek</string>
+  <key>ProgramArguments</key><array>
+    <string>/bin/sh</string>
+    <string>-lc</string>
+    <string>cd ~/Desktop/Rehberim/Rehberim-Backend &amp;&amp; ../Rehberim-Deployment/scripts/yedek-al.sh yks</string>
+  </array>
+  <key>StartCalendarInterval</key><dict>
+    <key>Hour</key><integer>3</integer><key>Minute</key><integer>30</integer>
+  </dict>
+  <key>StandardOutPath</key><string>/tmp/rehberim-yedek.log</string>
+  <key>StandardErrorPath</key><string>/tmp/rehberim-yedek.log</string>
+</dict></plist>
+```
+
+```bash
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/xyz.rehberim.yedek.plist
+launchctl kickstart -p gui/$(id -u)/xyz.rehberim.yedek   # hemen bir kez calistir
+```
+
+⚠️ **Günlüğü ara ara oku** (`/tmp/rehberim-yedek.log`). Sessizce başarısız olan
+bir yedek işi, hiç kurulmamış bir yedek işinden kötüdür: "yedeğim var"
+sanırsın. `railway` oturumu da süresi dolabilir — günlükte ilk görülecek şey o.
+
+⚠️ **Laptop yedeği gerçek bir yedek stratejisi değil.** Dosya tek makinede
+duruyor; o makine kaybolursa yedek de kaybolur. Asıl çözüm Railway'in sürekli
+yedeği (aşağıda); laptop yedeği onun yerine değil, **yanına** geçer.
+
+## Railway'in sürekli yedeği (PITR) — asıl çözüm
+
+Elle/günlük yedek bir **günlük** veri kaybına açık: sabah 3:30'da yedek
+alınır, akşam 9'da veritabanı giderse o günün bütün girişi yok olur. PITR
+(point-in-time recovery) sürekli WAL arşivi tutuyor, yani kaybedilen süre
+dakikalara iner.
+
+```bash
+railway postgres pitr status --service Postgres
+```
+
+| Proje | Durum (14 Ekim 2026) |
+|---|---|
+| YKS | **kapalı** |
+| `rehberim-lgs` | **kapalı** (`Bucket wired: no`) |
+
+Açmak ayrı bir depolama kovası ve ek ücret gerektiriyor; **karar verilmedi.**
+Gerçek dershane ve rehber verisi girdikçe bu karar ertelenemez hâle geliyor:
+iki ürünün verisi de yeniden girilebilir türden değil.
