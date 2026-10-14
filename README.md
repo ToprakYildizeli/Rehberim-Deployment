@@ -90,6 +90,15 @@ tek komutla doğrular. İki betik ayrı: uçlar farklı (LGS'nin giriş ucu
 `/api/auth/token/`, YKS'nin `/api/auth/login/`). Ayrıntı:
 [`docs/runbook.md`](docs/runbook.md).
 
+Veritabanı yedeği (ürünün backend deposunun içinden, Railway'e bağlı dizinde):
+
+```bash
+../Rehberim-Deployment/scripts/yedek-al.sh yks    # ya da: lgs
+```
+
+Tüneli açar, dökümü alır ve **dosyanın okunabildiğini doğrular**. Yanlış ürünü
+dökmeye karşı korumalı. Ayrıntı: [`docs/backup.md`](docs/backup.md).
+
 ## Durum
 
 > **CANLIDA (5 Eylül 2026).** Backend `api.rehberim.xyz`, rehber web
@@ -102,7 +111,9 @@ tek komutla doğrular. İki betik ayrı: uçlar farklı (LGS'nin giriş ucu
       kontrolü de geçiyor.
 - [x] PostgreSQL bağlandı — tüm migration'lar uygulandı, `/healthz`
       `{"status": "ok", "database": true}` dönüyor
-- [ ] **Yedekleme provası yapıldı** — `docs/backup.md`
+- [ ] **Yedekleme provası yapıldı** — `docs/backup.md`. ⚠️ YKS canlı ve
+      gerçek rehber verisi taşıyor; yedek işi hâlâ elle ve PITR kapalı.
+      `scripts/yedek-al.sh` için YKS deposu bir kez `railway link`lenmeli.
 - [x] Yönetici hesabı açıldı (`createsuperuser`) — 5 Eylül 2026
 - [x] **Volume kalıcılığı kanıtlandı** — 5 Eylül 2026: `/app/media`'ya dosya
       yazıldı, yeniden dağıtım yapıldı (konteyner kimliği değişti), dosya
@@ -112,25 +123,38 @@ tek komutla doğrular. İki betik ayrı: uçlar farklı (LGS'nin giriş ucu
 - [x] Rehber web yayında — `rehberim-frontend-web.vercel.app` (Vercel),
       5 Eylül 2026. CORS açıldı, kayıt zinciri uçtan uca doğrulandı.
 - [ ] SPA yönlendirmesi denendi (`/panel`'de F5, `/sifre-sifirla/abc/def`)
-- [ ] **Kök `rehberim.xyz` açılmıyor** — yalnız `www` çalışıyor. Natro'daki A
-      kaydı Vercel'in IP'sine (`76.76.21.21`) çevrilmeli; eski park IP'si
-      (`85.159.66.93`) kalmış olabilir.
+- [x] **Kök `rehberim.xyz` açılıyor** — 14 Ekim 2026'da doğrulandı: A kaydı
+      `76.76.21.21` (Vercel) ve kök adres `308` ile `www`'ye yönleniyor.
 - [ ] HSTS açıldı (HTTPS doğrulandıktan **sonra**)
 
 ### LGS tarafı
 
-> **HENÜZ CANLIDA DEĞİL.** Kod tarafı 10 Ekim 2026'da üretime hazırlandı
-> (Dockerfile, HTTPS sertleştirmesi, günlükleme, CI, şifre sıfırlama, paket
-> zorlaması); Railway/Vercel kurulumu yapılmadı.
+> **BACKEND AYAKTA, HENÜZ ALAN ADI YOK (14 Ekim 2026).** Railway servisi
+> `rehberim-lgs` projesinde çalışıyor
+> (`rehberim-backend-lgs-production.up.railway.app`), duman testinin dokuz
+> kontrolü de geçiyor. Eksik olan: alan adları, e-posta ve Sentry.
 
-- [ ] Railway projesi açıldı (**YKS'den ayrı**) — [`docs/lgs-railway.md`](docs/lgs-railway.md)
-- [ ] PostgreSQL bağlandı (**ayrı eklenti**), migration'lar uygulandı
-- [ ] `api-lgs.rehberim.xyz` bağlandı, sertifika çıktı
+- [x] Railway projesi açıldı (**YKS'den ayrı**: `rehberim-lgs`, EU West) —
+      [`docs/lgs-railway.md`](docs/lgs-railway.md)
+- [x] PostgreSQL bağlandı (**ayrı eklenti**), migration'lar uygulandı —
+      `/healthz` `{"status": "ok", "database": true}` dönüyor
+- [x] `scripts/smoke-lgs.sh` tüm kontrolleri geçiyor — 14 Ekim 2026, geçici
+      Railway adresinde dokuz kontrol
+- [x] DEBUG kapalı olduğu üretimde doğrulandı (olmayan yol düz `404` döndü,
+      Django hata ayıklama sayfası değil)
+- [ ] `api-lgs.rehberim.xyz` bağlandı, sertifika çıktı — **DNS'te kayıt yok**
+- [ ] `lgs.rehberim.xyz` (panel) bağlandı — **DNS'te kayıt yok**,
+      [`docs/lgs-web.md`](docs/lgs-web.md)
 - [ ] Yönetici hesabı açıldı (`createsuperuser`) — paket yönetimi admin'den
-- [ ] Dershane paneli yayında — `lgs.rehberim.xyz`, [`docs/lgs-web.md`](docs/lgs-web.md)
 - [ ] SPA yönlendirmesi denendi (`/denemeler`'de F5, `/sifre-sifirla/abc/def`)
-- [ ] E-posta bağlandı (**port 2587**) — olmadan şifre sıfırlama çalışmaz
-- [ ] Yedekleme provası yapıldı — [`docs/backup.md`](docs/backup.md)
-- [ ] `scripts/smoke-lgs.sh` tüm kontrolleri geçiyor
+- [ ] **E-posta bağlandı (port 2587)** — `DJANGO_EMAIL_HOST` tanımlı değil,
+      yani şifre sıfırlama postası konsola yazılıyor ve kimseye gitmiyor
+- [ ] **`DJANGO_PASSWORD_RESET_URL` tanımlandı** — tanımsız; varsayılan
+      `http://localhost:5183/...`, yani posta gitse de bağlantı çalışmaz
+- [ ] Yedekleme provası yapıldı — [`docs/backup.md`](docs/backup.md).
+      İlk döküm alındı (14 Ekim, 192 KB); geri yükleme provası yapılmadı
+- [ ] `SENTRY_DSN` tanımlandı — entegrasyon **kodda var** (13 Ekim 2026),
+      değişken Railway'de yok
 - [ ] HSTS açıldı (HTTPS doğrulandıktan **sonra**)
-- [ ] Sentry — **LGS kodunda entegrasyon yok**, önce yazılması gerekir
+- [ ] **`kvkk@rehberim.xyz` kutusu açıldı** — alan adında MX kaydı yok, oysa
+      KVKK metinleri bu adresi ilan ediyor
