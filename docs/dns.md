@@ -12,6 +12,8 @@ yazılmaz** (bu repo herkese açık).
 | `@` | A / ALIAS | Barındırmanın verdiği | Vercel / Cloudflare Pages | YKS rehber web |
 | `www` | CNAME | Barındırmanın verdiği | aynı | YKS rehber web |
 | `api-lgs` | CNAME | Railway'in verdiği hedef | LGS'nin **ayrı** Railway projesi | LGS backend API |
+| `_railway-verify.api` | TXT | Railway'in verdiği `railway-verify=...` | Railway → alan adı ekranı | YKS sertifika doğrulaması |
+| `_railway-verify.api-lgs` | TXT | Railway'in verdiği `railway-verify=...` | aynı, LGS projesi | LGS sertifika doğrulaması |
 | `lgs` | CNAME | Barındırmanın verdiği | Vercel (LGS paneli) | LGS dershane paneli |
 | `send` | CNAME | Resend'in verdiği | Resend | E-posta yetkilendirme (SPF) |
 | `rsend` | CNAME | Resend'in verdiği | Resend | aynı (bölge sunucusu) |
@@ -22,6 +24,24 @@ yazılmaz** (bu repo herkese açık).
 alanlarına CNAME ile bağlıyor; kök alan adına `v=spf1 ...` yazmak gerekmiyor
 (16 Eylül 2026'da böyle kuruldu ve doğrulandı). Eski belge `@` TXT'si
 anlatıyordu, o yol artık geçerli değil.
+
+⚠️ **Railway alan adları için doğrulama TXT'si zorunlu.** CNAME tek başına
+yetmiyor: 14 Ekim 2026'da `api-lgs` kaydı yayıldığı hâlde sertifika 20 dakika
+`VALIDATING_OWNERSHIP`'te asılı kaldı, `_railway-verify.api-lgs` girilince
+birkaç dakikada çıktı. Vercel alan adlarında (`www`, `lgs`) böyle bir kayıt
+gerekmiyor.
+
+⚠️ **Natro'da host alanına yalnız alt alan adını yaz** (`api-lgs`, `lgs`,
+`_railway-verify.api-lgs`) — tam adı yazmak kaydı
+`lgs.rehberim.xyz.rehberim.xyz` yapıyor ve hiçbir yerde görünmüyor. Kaydın
+gerçekten yayınlandığını yetkili sunucudan doğrula:
+
+```bash
+dig +short CNAME lgs.rehberim.xyz @ns1.natrohost.com
+```
+
+Genel çözücüler olumsuz yanıtı önbelleğe aldığı için `dig +short CNAME
+lgs.rehberim.xyz` birkaç dakika boş dönebilir; yetkili sunucu doğruyu söyler.
 
 ⚠️ **LGS kayıtları ayrı kaynaklardan gelir.** `api-lgs`'in hedefi YKS'nin
 Railway projesi değil, LGS'nin kendi projesidir; `lgs`'in hedefi de ayrı bir

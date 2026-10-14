@@ -27,6 +27,30 @@ elde çalışan ikinci bir kapı kalsın diye. `ALLOWED_HOSTS` ikisini de kabul 
 Mobil uygulamalar derlenirken:
 `--dart-define=API_BASE_URL=https://api.rehberim.xyz/api`
 
+## Canlı adresler — LGS (14 Ekim 2026'dan beri)
+
+LGS **ayrı bir üründür**: ayrı Railway projesi, ayrı PostgreSQL, ayrı Sentry
+projesi. Bir arıza anında yanlış projeye bakmak en sık hata.
+
+| Ne | Adres |
+|---|---|
+| API | `https://api-lgs.rehberim.xyz/api` |
+| Sağlık ucu | `https://api-lgs.rehberim.xyz/healthz` |
+| Admin | `https://api-lgs.rehberim.xyz/admin/` |
+| Dershane paneli | `https://lgs.rehberim.xyz` |
+| Yedek (Railway) | `https://rehberim-backend-lgs-production.up.railway.app` |
+| Yedek (Vercel) | `https://rehberim-frontend-lgs.vercel.app` |
+
+```bash
+scripts/smoke-lgs.sh https://api-lgs.rehberim.xyz
+```
+
+Sonra elle: panelden giriş + `/denemeler`de F5.
+
+⚠️ Giriş ucu `/api/auth/token/` (YKS'de `/api/auth/login/`), CORS değişkeninin
+adı `CORS_ALLOWED_ORIGINS` (YKS'de `DJANGO_CORS_ALLOWED_ORIGINS`). Komutları
+hafızadan yazarken ikisi de karışıyor.
+
 ## Belirtiden sebebe
 
 | Belirti | Muhtemel sebep | Bakılacak yer |
@@ -47,6 +71,10 @@ Mobil uygulamalar derlenirken:
 | Arayüz açılıyor, "Kayıt başarısız" | Yeni alan adı CORS listesinde yok | `DJANGO_CORS_ALLOWED_ORIGINS` |
 | Yeni alan adı sertifika hatası | Sertifika henüz çıkmadı | Birkaç dakika bekle; Railway/Vercel doğrulamayı bitirsin |
 | Admin formu "CSRF doğrulaması başarısız" | `DJANGO_CSRF_TRUSTED_ORIGINS` eksik | Variables |
+| Sertifika saatlerce "doğrulanıyor" | `_railway-verify.<alt alan>` TXT kaydı yok | [`dns.md`](dns.md) |
+| Railway "repository not accessible", dallar yüklenmiyor | Özel depoya GitHub App izni yok | [`lgs-railway.md`](lgs-railway.md) §1 |
+| `main`'e push edildi, dağıtım hiç başlamadı | Dağıtım tetikleyicisi oluşmamış (`repoTriggers: []`) | Servis → Source → yeniden bağla |
+| Açılışta "No migrations to apply" ama veritabanı yeni | Büyük ihtimalle günlük akışı satırları yuttu | Duman testi: 401 geliyorsa şema yerinde |
 
 ## ⚠️ Bağlanan disk root'a ait gelir
 

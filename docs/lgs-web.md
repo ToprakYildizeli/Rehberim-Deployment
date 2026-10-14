@@ -4,6 +4,10 @@ Kaynak: `ToprakYildizeli/Rehberim-Frontend-LGS` · Hedef: `lgs.rehberim.xyz`
 
 Uygulama saf statik dosya (React + Vite + TS). Sunucu istemez.
 
+**Durum: yayında (14 Ekim 2026).** Vercel projesi `rehberim-frontend-lgs`,
+`main` dalından dağıtılıyor; yedek adres `rehberim-frontend-lgs.vercel.app`.
+`lgs.rehberim.xyz` bağlı ve sertifikası geçerli.
+
 > **Neden `lgs.rehberim.xyz`, neden `rehberim.xyz/lgs` değil.**
 > Yol haritasının Faz 8 planı path tabanlıydı: `rehberim.xyz/lgs` ve
 > `rehberim.xyz/yks`. Bu, **canlıdaki** YKS web'ini `www.rehberim.xyz`'den bir
@@ -53,6 +57,16 @@ Vercel dışında bir yere alınırsa elle kurulmalı:
 
 `lgs.rehberim.xyz` → [`dns.md`](dns.md)
 
+Vercel → proje → **Domains → Add** → alan adını yaz, *Connect to an
+environment: Production* seçili kalsın. Verdiği CNAME hedefini DNS panelinde
+`lgs` adıyla tanımla. Railway'in aksine Vercel **ayrı bir doğrulama TXT'si
+istemiyor**; CNAME yayılınca sertifika kendiliğinden çıkıyor.
+
+⚠️ Depo özel olduğu için Vercel'in GitHub uygulamasının bu depoya erişimi
+olmalı — Railway tarafında bu yüzden yarım saat kaybedildi (bkz.
+[`lgs-railway.md`](lgs-railway.md) §1). Vercel'de depo listede görünmüyorsa:
+GitHub → Settings → Applications → Vercel → Configure.
+
 Bağlandıktan sonra **backend'e dön** ve iki değişkeni güncelle:
 
 ```
@@ -78,3 +92,24 @@ adresini gösterir.
 5. Şifremi unuttum → gerçek bir adrese posta gidiyor mu. **Backend'de
    `DJANGO_EMAIL_HOST` tanımlı değilse gitmez**, sessizce konsola yazılır.
 6. Tarayıcı konsolunda CORS hatası yok.
+
+3 ve 4'ü tarayıcısız da sınayabilirsin (yönlendirme kuralı için yeterli):
+
+```bash
+for p in / /denemeler /sifre-sifirla/abc/def /gizlilik; do
+  printf '%-24s %s\n' "$p" "$(curl -s -o /dev/null -w '%{http_code}' https://lgs.rehberim.xyz$p)"
+done
+```
+
+CORS'u da gerçek adreslerle, tarayıcının yaptığı ön kontrolün aynısıyla:
+
+```bash
+curl -s -D - -o /dev/null -X OPTIONS \
+  -H 'Origin: https://lgs.rehberim.xyz' \
+  -H 'Access-Control-Request-Method: POST' \
+  -H 'Access-Control-Request-Headers: content-type' \
+  https://api-lgs.rehberim.xyz/api/auth/token/ | grep -i 'access-control-allow-origin'
+```
+
+14 Ekim 2026'da dördü de 200 döndü ve ön kontrol
+`access-control-allow-origin: https://lgs.rehberim.xyz` verdi.
