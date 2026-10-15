@@ -147,14 +147,14 @@ dökmeye karşı korumalı. Ayrıntı: [`docs/backup.md`](docs/backup.md).
       [`docs/lgs-web.md`](docs/lgs-web.md)
 - [ ] Yönetici hesabı açıldı (`createsuperuser`) — paket yönetimi admin'den
 - [ ] SPA yönlendirmesi denendi (`/denemeler`'de F5, `/sifre-sifirla/abc/def`)
-- [ ] **E-posta bağlandı (port 2587)** — `DJANGO_EMAIL_HOST` tanımlı değil,
-      yani şifre sıfırlama postası konsola yazılıyor ve kimseye gitmiyor
-- [ ] **`DJANGO_PASSWORD_RESET_URL` tanımlandı** — tanımsız; varsayılan
-      `http://localhost:5183/...`, yani posta gitse de bağlantı çalışmaz
+- [x] **E-posta bağlandı (port 2587)** — 16 Ekim 2026, ayrı Resend anahtarı
+      (`rehberim-lgs-prod`). Uçtan uca doğrulandı: istek → posta ~30 sn →
+      bağlantıdan şifre değişimi. Günlükte SMTP hatası yok.
+- [x] **`DJANGO_PASSWORD_RESET_URL` tanımlandı** —
+      `https://lgs.rehberim.xyz/sifre-sifirla/{uid}/{token}`
 - [ ] Yedekleme provası yapıldı — [`docs/backup.md`](docs/backup.md).
       İlk döküm alındı (14 Ekim, 192 KB); geri yükleme provası yapılmadı
-- [ ] `SENTRY_DSN` tanımlandı — entegrasyon **kodda var** (13 Ekim 2026),
-      değişken Railway'de yok
+- [x] `SENTRY_DSN` tanımlandı
 - [ ] HSTS açıldı (HTTPS doğrulandıktan **sonra**)
 - [ ] **`kvkk@rehberim.xyz` kutusu açıldı** — alan adında MX kaydı yok, oysa
       KVKK metinleri bu adresi ilan ediyor

@@ -61,6 +61,51 @@ soket zaman aşımı varsayılanı **süresiz beklemek**. Bunun için
 API**'sine geçmek: 443 çıkışının çalıştığı kesin (Sentry oradan gidiyor),
 küçük bir Django e-posta arka ucu yeter.
 
+## LGS tarafı — 16 Ekim 2026'da kuruldu
+
+Aynı Resend hesabı, **ayrı API anahtarı** (`rehberim-lgs-prod`, Sending
+access, yalnız `rehberim.xyz` alan adına kısıtlı). Anahtar paylaşılmadı:
+deponun `SECRET_KEY` kuralının aynısı — *bir anahtarın sızması diğerini de
+düşürmemeli*. Kota yine de aynı hesapta paylaşılıyor; değişen şey
+iptal edilebilirlik.
+
+`rehberim-lgs` projesinde, `rehberim-backend-lgs` servisinde:
+
+```
+DJANGO_EMAIL_HOST=smtp.resend.com
+DJANGO_EMAIL_PORT=2587
+DJANGO_EMAIL_HOST_USER=resend
+DJANGO_EMAIL_HOST_PASSWORD=<rehberim-lgs-prod anahtarı>
+DJANGO_EMAIL_USE_TLS=1
+DJANGO_EMAIL_TIMEOUT=10
+DJANGO_DEFAULT_FROM_EMAIL=Rehberim LGS <noreply@rehberim.xyz>
+DJANGO_PASSWORD_RESET_URL=https://lgs.rehberim.xyz/sifre-sifirla/{uid}/{token}
+```
+
+Gönderen adı **"Rehberim LGS"** — öğretmen hangi üründen posta geldiğini
+görmeli. Sıfırlama adresi **dershane panelini** gösteriyor, rehber web'ini
+değil.
+
+⚠️ **Port yine 2587.** YKS'deki engelin aynısı; LGS aynı Railway altyapısında
+ve 587 orada da açılmıyor.
+
+**Doğrulama (16 Ekim 2026, uçtan uca):** `lgs.rehberim.xyz/sifremi-unuttum` →
+gerçek bir adrese istek → posta **~30 saniyede** geldi → bağlantıdan yeni
+şifre belirlendi → giriş yapıldı. Günlükte SMTP hatası ya da işçi ölümü yok.
+
+```
+00:30:50  POST /api/auth/password-reset/          200
+00:31:22  POST /api/auth/password-reset/confirm/  400   ← aşağıdaki not
+00:31:53  POST /api/auth/password-reset/confirm/  200
+```
+
+Aradaki `400` bir arıza değil: `UserAttributeSimilarityValidator` yeni şifreyi
+**kullanıcı adına benzediği için** reddetti. Django'nun
+`AUTH_PASSWORD_VALIDATORS` zinciri sıfırlama akışında da çalışıyor, yani
+kullanıcı sıfırlama sırasında kolay bir şifreye kaçamıyor — istenen davranış
+bu. İleti Türkçe geliyor (`LANGUAGE_CODE = "tr"`) ve panel sunucunun metnini
+olduğu gibi gösteriyor.
+
 ## Sıfırlama bağlantısının adresi
 
 ```

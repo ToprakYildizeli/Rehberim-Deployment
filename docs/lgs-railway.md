@@ -211,11 +211,8 @@ ucu 500 yerine 401 dönüyorsa şema yerindedir.
 
 ## Henüz yapılmayanlar
 
-- **E-posta (Resend).** Tanımlanmazsa postalar konsola yazılır ve şifresini
-  unutan öğretmen sıfırlama bağlantısını hiç almaz. YKS ile aynı Resend
-  hesabı kullanılabilir; ayrı bir gönderen adresi (`noreply@rehberim.xyz`
-  yeter) ve **port 2587** gerekir — Railway 587'yi engelliyor, ayrıntı
-  [`email-resend.md`](email-resend.md).
+- ~~**E-posta (Resend).**~~ **Kuruldu ve doğrulandı: 16 Ekim 2026.**
+  Ayrıntı [`email-resend.md`](email-resend.md) → "LGS tarafı".
 - **Yedekleme provası.** [`backup.md`](backup.md) yordamı LGS veritabanı için
   de uygulanmalı. *Yedeği geri yükleyemiyorsan yedeğin yok.*
 - **HSTS.** HTTPS'in çalıştığı gözle doğrulandıktan sonra
