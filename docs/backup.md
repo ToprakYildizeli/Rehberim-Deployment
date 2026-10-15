@@ -32,7 +32,7 @@ geçmez (sebebi aşağıda: macOS launchd `~/Desktop`'ı okuyamıyor).
 
 | Kademe | Durum |
 |---|---|
-| 1. PITR | LGS'de **açık** · YKS'de **bekliyor** (Postgres yeniden dağıtımı gerekiyor) |
+| 1. PITR | **İki üründe de açık** (LGS 15 Ekim, YKS 16 Ekim 2026) |
 | 2. Nesne depolamasına günlük döküm | kod hazır ve uçtan uca doğrulandı, **servis kurulmadı** — [`../yedek-servisi/`](../yedek-servisi/README.md) |
 | 3. Prova | **otomatik ve geçiyor** — `scripts/yedek-prova.sh` |
 
@@ -287,17 +287,36 @@ dakikalara iner.
 railway postgres pitr status --service Postgres
 ```
 
-| Proje | Durum (15 Ekim 2026'da ölçüldü) |
+| Proje | Durum (16 Ekim 2026'da ölçüldü) |
 |---|---|
-| `gleaming-manifestation` (YKS) | **kapalı** — `Status: disabled`, `Bucket wired: no` |
-| `rehberim-lgs` (LGS) | **kapalı** — `Status: disabled`, `Bucket wired: no` |
+| `gleaming-manifestation` (YKS) | **açık** — `Status: enabled`, `Bucket wired: yes` |
+| `rehberim-lgs` (LGS) | **açık** — `Status: enabled`, `Bucket wired: yes` |
 
-Açmak ayrı bir depolama kovası ve ek ücret gerektiriyor; **karar verilmedi.**
+### YKS'de açılması (16 Ekim 2026, 00:45)
 
-⚠️ **YKS'de artık erteleyecek bir şey yok:** üretimde 98 kullanıcı ve 5957
-görev kaydı var (15 Ekim 2026). Bir rehberin haftalık programını ve deneme
-geçmişini yeniden girmek kimsenin yapacağı bir iş değil. LGS üretimi hâlâ boş,
-yani orada acele yok — ama pilot dershane girildiği gün aynı duruma geliyor.
+Açmak Postgres'i yeniden dağıtıyor, yani canlı veritabanı kısa süre düşüyor.
+Pencere **ölçülerek** seçildi: haftalık erişim günlüğünde 00:00–02:00 arası
+sıfır istek, ve işlemden hemen önce son 20 dakikada da sıfır gerçek
+`/api/` isteği vardı (bkz. `runbook.md` → "Kesinti gerektiren işi ne zaman
+yapmalı").
+
+Yordam ve sonuç:
+
+1. Taze yedek alındı (384 KB, 40 tablo).
+2. `railway postgres pitr enable --service Postgres`.
+3. API ~30 saniyede geri geldi; duman testinin yedi kontrolü geçti, günlükte
+   hata yok, üç istemci de (`www`, `app/ogrenci`, `app/veli`) `200`.
+4. **Veri doğrulaması:** yeniden başlatmadan sonra ikinci bir sayım alınıp
+   öncekiyle karşılaştırıldı — **40 tablonun satır sayısı birebir aynı**
+   (14.857 satır). Yeniden başlatmanın veriye dokunmadığı tahmin değil,
+   ölçüm.
+
+Açmak ayrı bir depolama kovası ve ek ücret gerektiriyor; **karar verildi ve
+yapıldı** (15 Ekim 2026).
+
+⚠️ **İki üründe de gerçek veri var:** YKS'de 98 kullanıcı ve 5957 görev
+kaydı, LGS'de 68 öğrenci ve 6091 yoklama kaydı (16 Ekim 2026). "LGS üretimi
+boş" notu artık geçersiz.
 
 ⚠️ **PITR, kademe 2'nin yerine geçmez.** Railway'in içinde durur: hesap
 kapanırsa, fatura ödenmezse ya da sağlayıcı kaybedilirse PITR de gider. İkisi
