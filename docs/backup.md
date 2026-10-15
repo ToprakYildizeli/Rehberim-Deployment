@@ -28,8 +28,18 @@ depolamasına (S3/R2/B2) yazar, kademe 3 ayda bir koşulur. Buradaki
 denemeden önceki kopya, elle alınan haftalık kopya. Zamanlanmış işin yerine
 geçmez (sebebi aşağıda: macOS launchd `~/Desktop`'ı okuyamıyor).
 
-**Bugünkü durum:** kademe 1 **kapalı** (iki üründe de PITR disabled) ·
-kademe 2 **elle** · kademe 3 **otomatik ve geçiyor**.
+**Bugünkü durum (15 Ekim 2026):**
+
+| Kademe | Durum |
+|---|---|
+| 1. PITR | LGS'de **açık** · YKS'de **bekliyor** (Postgres yeniden dağıtımı gerekiyor) |
+| 2. Nesne depolamasına günlük döküm | kod hazır ve uçtan uca doğrulandı, **servis kurulmadı** — [`../yedek-servisi/`](../yedek-servisi/README.md) |
+| 3. Prova | **otomatik ve geçiyor** — `scripts/yedek-prova.sh` |
+
+⚠️ **Railway'in anlık görüntü takvimi bu hesapta kullanılamıyor:**
+`pitr schedule set` *"Manual backups and backup schedules are only available
+for Pro workspaces"* diyor. PITR'in sürekli WAL arşivi çalışıyor, ama elle ya
+da takvimli tam görüntü alınamıyor. Kademe 2 bu yüzden isteğe bağlı değil.
 
 **İki ürün, iki ayrı veritabanı.** YKS ve LGS ayrı Railway projelerinde, ayrı
 PostgreSQL eklentileriyle çalışıyor. Yedek de ayrı alınır; bir ürünün dökümü
@@ -246,6 +256,11 @@ Depo `~/Desktop/Rehberim` altında olduğu için zamanlanmış iş hem betiği
 çalıştıramıyor hem yedeği oraya yazamıyor. **İşi kurulu bırakmak her gece
 sessizce düşen bir iş bırakmak demekti**, o yüzden kaldırıldı
 (`launchctl bootout`).
+
+**Seçilen yol: 3 — iş buluta taşındı** (karar: 15 Ekim 2026).
+[`../yedek-servisi/`](../yedek-servisi/README.md): her ürünün Railway
+projesinde bir cron servisi, döküm `age` ile şifrelenip nesne depolamasına
+yazılıyor. Aşağıdaki 1 ve 2 kayıt için duruyor.
 
 Üç çıkış yolu var:
 
