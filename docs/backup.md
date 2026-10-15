@@ -2,6 +2,35 @@
 
 > **İlk dağıtımdan önce okunur.** Geri yükleyemediğin bir yedek, yedek değildir.
 
+## Nasıl yürür — üç kademe
+
+Yedekleme tek bir şey değil, **üç ayrı kademedir** ve her biri başka bir
+felakete karşı durur. Ölçü iki sayı:
+
+- **RPO** (ne kadar veri kaybedilebilir): son yedekten beri geçen süre.
+- **RTO** (ne kadar süre ayakta olmayabilir): geri yüklemenin aldığı süre.
+
+| Kademe | Neye karşı | RPO | Kimde durur |
+|---|---|---|---|
+| 1. Sağlayıcının anlık görüntüsü + PITR | donanım arızası, yanlışlıkla `DELETE`, bozulan migration | dakikalar | Railway |
+| 2. Mantıksal döküm, **başka bir yerde** | sağlayıcının kendisini kaybetmek, hesabın kapanması, faturanın ödenmemesi | bir gün | bizde |
+| 3. Geri yükleme provası | *"yedek vardı ama açılmadı"* | — | bizde |
+
+Kademeler birbirinin yerine geçmez. PITR en küçük kaybı verir ama **Railway'in
+içinde durur** — hesap kapanırsa o da gider. Mantıksal döküm sağlayıcıdan
+bağımsızdır ama en çok bir günlük kaybı kabul eder. Prova olmadan ikisi de
+yalnızca bir varsayımdır.
+
+⚠️ **Normalde üretim yedeği dizüstünden alınmaz.** Olağan düzen: kademe 1
+sağlayıcıda açıktır, kademe 2'yi bulutta çalışan zamanlanmış bir iş nesne
+depolamasına (S3/R2/B2) yazar, kademe 3 ayda bir koşulur. Buradaki
+`scripts/yedek-al.sh` **ad hoc araç**: göç öncesi emniyet kopyası, bir şeyi
+denemeden önceki kopya, elle alınan haftalık kopya. Zamanlanmış işin yerine
+geçmez (sebebi aşağıda: macOS launchd `~/Desktop`'ı okuyamıyor).
+
+**Bugünkü durum:** kademe 1 **kapalı** (iki üründe de PITR disabled) ·
+kademe 2 **elle** · kademe 3 **otomatik ve geçiyor**.
+
 **İki ürün, iki ayrı veritabanı.** YKS ve LGS ayrı Railway projelerinde, ayrı
 PostgreSQL eklentileriyle çalışıyor. Yedek de ayrı alınır; bir ürünün dökümü
 diğerine geri yüklenemez (şemalar farklı, `AUTH_USER_MODEL` bile ayrı).
@@ -27,8 +56,12 @@ cd ~/Desktop/Rehberim/Rehberim-Backend-LGS      # ya da Rehberim-Backend (YKS)
 Betik (`scripts/yedek-al.sh`) tüneli açar, dökümü alır, **dosyanın gerçekten
 okunabildiğini doğrular** ve üretimdeki satır sayılarını yazdırır. Hiçbir şey
 yazmaz; üretimde çalıştırmak güvenlidir. Dosya
-`~/Desktop/Rehberim/yedekler/<proje>-<tarih>.dump` olarak, `chmod 600` ile
-kaydedilir.
+`~/Desktop/Rehberim/yedekler/<ürün>-<proje>-<tarih>.dump` olarak, `chmod 600`
+ile kaydedilir; yanına satır sayımlarını taşıyan bir `.sayim` dosyası düşer
+(provada karşılaştırılan şey o).
+
+Ürün öneki şart: Railway'in ürettiği proje adı tek başına hangi ürün olduğunu
+söylemiyor — YKS'nin projesi `gleaming-manifestation`.
 
 - ⚠️ **Yanlış ürünü dökme koruması var:** betik bağlı Railway projesinin
   **adına** bakıyor, klasör adına değil. `yedek-al.sh yks` komutunu LGS'ye
@@ -36,14 +69,17 @@ kaydedilir.
   yani dökümün hangi üründen geldiği dosyadan okunur.
 - YKS tarafı için **bir kez** `railway link` gerekiyor (LGS deposu bağlı).
 - Döküm **boş da olabilir** ve bu sessiz bir arıza olurdu; betik bu yüzden
-  `pg_restore --list` ile nesne sayar ve `pg_stat_user_tables`'dan satır
-  sayılarını basar. Beklediğinden küçük bir sayı görürsen dosyayı saklama,
-  sebebini bul.
-- Betik **saklama/silme yapmıyor** (bilerek): eski yedekleri otomatik silen
-  bir betik, bir gün tek sağlam yedeği de siler. Dizini elle gözden geçir.
+  `pg_restore --list` ile nesne sayar ve her tablonun satır sayısını `count(*)`
+  ile okur. Beklediğinden küçük bir sayı görürsen dosyayı saklama, sebebini bul.
+  - Sayım `n_live_tup` ile **yapılmıyor**: o istatistik tablosundan geliyor ve
+    yaklaşıktır, yani provada birebir karşılaştırmaya elvermez.
+- **Saklama varsayılan olarak kapalı** (`YEDEK_SAKLA=0`). Gün sayısı verilirse
+  o günden eski yedekler silinir, ama **en yeni iki yedek her koşulda
+  korunur** — betik uzun süre koşmadıysa elde hiç yedek kalmasın diye.
 
-İlk çalıştırma (14 Ekim 2026, LGS üretimi): 192 KB · 311 nesne · katalog
-dışında satır yok — üretim veritabanı henüz boş, karar gereği.
+Ölçülen çalıştırmalar (15 Ekim 2026): YKS 384 KB · 358 nesne · 40 tablo
+(5957 görev, 2335 konu takibi, 98 kullanıcı) · LGS 192 KB · 311 nesne ·
+34 tablo (üretim henüz boş, karar gereği).
 
 ### Elle (betik çalışmazsa)
 
@@ -79,6 +115,33 @@ gerektiriyor; karar verilmedi. O açılana kadar tek koruma bu elle yedek.
 tut, bu repo'ya ya da herhangi bir git deposuna **koyma**.
 
 ## Geri yükleme provası — atlanmaz
+
+### Betikle (olağan yol)
+
+```bash
+scripts/yedek-prova.sh            # her üründen en yeni yedeği dener
+scripts/yedek-prova.sh <dosya>    # belirli bir yedeği
+```
+
+Geçici bir PostgreSQL 18 konteyneri açıp yedeği oraya yükler, sonra siler.
+**Üretime dokunmaz.** Dört şey denetlenir, dördü de ayrı bir sessiz arızaya
+karşılık geliyor:
+
+1. `pg_restore` hatasız bitiyor mu — dosya bozuk/yarım olabilir.
+2. Satır sayıları yedeğin yanındaki `.sayim` dosyasıyla **birebir** tutuyor mu
+   — şema doğru olup verinin boş gelmesi mümkün.
+3. `migrate --check` temiz mi — yedek eski bir şemadan olabilir.
+4. Django ORM kayıtları okuyabiliyor mu — tablo dolu, model kırık olabilir.
+
+⚠️ Satır karşılaştırması `yedek-al.sh`'ın ürettiği `<dosya>.dump.sayim`'a
+dayanıyor. O dosya yoksa (eski betikle alınmış yedek) karşılaştırma atlanır ve
+betik bunu söyler — sessizce geçmez.
+
+⚠️ `pg_isready` konteyner daha `initdb` aşamasındayken bile "hazır" diyor;
+betik bu yüzden gerçek bir `select 1` dönene kadar bekliyor. İlk yazımda
+`pg_restore` tam bu yüzden *"the database system is starting up"* ile düştü.
+
+### Elle (betik çalışmazsa)
 
 Yedeğin çalıştığını, ona ihtiyaç duyduğun gün öğrenemezsin. Provayı **boş bir
 veritabanına** yap, üretime değil:
@@ -117,6 +180,8 @@ ORM'in veriyi okuyabildiğini doğrulayın — şema doğru olup veri boş geleb
 | Tarih | Yedek | Sonuç |
 |---|---|---|
 | 6 Eylül 2026 | `rehberim-20260906.dump` (148 KB, PostgreSQL 18) | **Geçti.** `pg_restore` hatasız · satır sayıları birebir aynı (3 kullanıcı, 1 rehber, 1 öğrenci, 66 migration) · `migrate --check` temiz · ORM kayıtları okudu (rehber + bağlı öğrenci + avatar) |
+| 15 Ekim 2026 | `yks-gleaming-manifestation-20261015-1158.dump` (384 KB) | **Geçti**, `scripts/yedek-prova.sh` ile. `pg_restore` hatasız · 40 tablonun satır sayısı birebir · `migrate --check` temiz · ORM 98 kullanıcı okudu |
+| 15 Ekim 2026 | `lgs-rehberim-lgs-20261015-1157.dump` (192 KB) | **Geçti.** 34 tablo birebir · `migrate --check` temiz · ORM 1 kullanıcı okudu (üretim henüz boş) |
 
 ## Yüklemeler
 
@@ -157,46 +222,45 @@ girmek kimsenin yapmak isteyeceği bir şey değil.
 **YKS şu an canlı ve gerçek rehber verisi taşıyor; LGS üretimi boş.** Yani
 bugünkü kayıp riski tamamen YKS tarafında.
 
-## Otomatikleştirme (launchd)
+## Otomatikleştirme — launchd `~/Desktop`'ı okuyamıyor
 
-Elle alınan yedek, alınmayı hatırladığın sürece yedektir. Günlük bir iş
-tanımla — `cron` değil `launchd`, macOS'ta uyuyan makinede kaçan işi
-sonra çalıştıran tek yol o.
+`scripts/yedek-gunluk.sh` iki ürünü birden alıyor, saklama süresini uyguluyor
+ve elle çalıştırıldığında sorunsuz çalışıyor (15 Ekim 2026'da doğrulandı).
+`launchd/xyz.rehberim.yedek.plist` de hazır. **Ama kurulduğunda çalışmıyor:**
 
-`~/Library/LaunchAgents/xyz.rehberim.yedek.plist`:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-  <key>Label</key><string>xyz.rehberim.yedek</string>
-  <key>ProgramArguments</key><array>
-    <string>/bin/sh</string>
-    <string>-lc</string>
-    <string>cd ~/Desktop/Rehberim/Rehberim-Backend &amp;&amp; ../Rehberim-Deployment/scripts/yedek-al.sh yks</string>
-  </array>
-  <key>StartCalendarInterval</key><dict>
-    <key>Hour</key><integer>3</integer><key>Minute</key><integer>30</integer>
-  </dict>
-  <key>StandardOutPath</key><string>/tmp/rehberim-yedek.log</string>
-  <key>StandardErrorPath</key><string>/tmp/rehberim-yedek.log</string>
-</dict></plist>
+```
+/bin/sh: .../Rehberim-Deployment/scripts/yedek-gunluk.sh: Operation not permitted
 ```
 
-```bash
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/xyz.rehberim.yedek.plist
-launchctl kickstart -p gui/$(id -u)/xyz.rehberim.yedek   # hemen bir kez calistir
-```
+Sebep macOS TCC: launchd kullanıcı ajanları `~/Desktop`'a erişemiyor. Ölçüldü
+(15 Ekim 2026) — bir launchd işi içinden:
 
-⚠️ **Günlüğü ara ara oku** (`/tmp/rehberim-yedek.log`). Sessizce başarısız olan
-bir yedek işi, hiç kurulmamış bir yedek işinden kötüdür: "yedeğim var"
-sanırsın. `railway` oturumu da süresi dolabilir — günlükte ilk görülecek şey o.
+| Dizin | Sonuç |
+|---|---|
+| `~/Desktop` | **ENGELLİ** |
+| `~/Desktop/Rehberim` | **ENGELLİ** |
+| `~/Library/Application Support` | okur |
+| `~/<düz bir dizin>` | okur |
 
-⚠️ **Laptop yedeği gerçek bir yedek stratejisi değil.** Dosya tek makinede
-duruyor; o makine kaybolursa yedek de kaybolur. Asıl çözüm Railway'in sürekli
-yedeği (aşağıda); laptop yedeği onun yerine değil, **yanına** geçer.
+Depo `~/Desktop/Rehberim` altında olduğu için zamanlanmış iş hem betiği
+çalıştıramıyor hem yedeği oraya yazamıyor. **İşi kurulu bırakmak her gece
+sessizce düşen bir iş bırakmak demekti**, o yüzden kaldırıldı
+(`launchctl bootout`).
 
+Üç çıkış yolu var:
+
+1. **Betiği ve hedefi `~/Desktop` dışına taşı.** Betikler
+   `~/Library/Application Support/Rehberim/bin/`'e kopyalanır, yedekler aynı
+   ağacın altına yazılır. ⚠️ `yedek-al.sh` Railway projesini **bağlı dizinden**
+   okuyor; depo dizinine girilemeyeceği için proje kimliği `-p` ile verilmeli,
+   yani betik bir kurulum dosyasından okuyacak hâle getirilmeli.
+2. **`/bin/sh`'e Full Disk Access ver** (Sistem Ayarları → Gizlilik ve
+   Güvenlik). Tek satır iş ama **çok geniş bir yetki**: bundan sonra her kabuk
+   betiği bütün diske erişir. Önerilmez.
+3. **İşi dizüstünden al, buluta koy** — olağan düzen bu (en başa bak). Kademe
+   2'nin doğru yeri zaten burası değil.
+
+Seçim yapılmadı.
 ## Railway'in sürekli yedeği (PITR) — asıl çözüm
 
 Elle/günlük yedek bir **günlük** veri kaybına açık: sabah 3:30'da yedek
@@ -208,11 +272,18 @@ dakikalara iner.
 railway postgres pitr status --service Postgres
 ```
 
-| Proje | Durum (14 Ekim 2026) |
+| Proje | Durum (15 Ekim 2026'da ölçüldü) |
 |---|---|
-| YKS | **kapalı** |
-| `rehberim-lgs` | **kapalı** (`Bucket wired: no`) |
+| `gleaming-manifestation` (YKS) | **kapalı** — `Status: disabled`, `Bucket wired: no` |
+| `rehberim-lgs` (LGS) | **kapalı** — `Status: disabled`, `Bucket wired: no` |
 
 Açmak ayrı bir depolama kovası ve ek ücret gerektiriyor; **karar verilmedi.**
-Gerçek dershane ve rehber verisi girdikçe bu karar ertelenemez hâle geliyor:
-iki ürünün verisi de yeniden girilebilir türden değil.
+
+⚠️ **YKS'de artık erteleyecek bir şey yok:** üretimde 98 kullanıcı ve 5957
+görev kaydı var (15 Ekim 2026). Bir rehberin haftalık programını ve deneme
+geçmişini yeniden girmek kimsenin yapacağı bir iş değil. LGS üretimi hâlâ boş,
+yani orada acele yok — ama pilot dershane girildiği gün aynı duruma geliyor.
+
+⚠️ **PITR, kademe 2'nin yerine geçmez.** Railway'in içinde durur: hesap
+kapanırsa, fatura ödenmezse ya da sağlayıcı kaybedilirse PITR de gider. İkisi
+birden gerekiyor.

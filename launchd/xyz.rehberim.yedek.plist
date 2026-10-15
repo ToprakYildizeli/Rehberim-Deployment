@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Gunluk veritabani yedegi (YKS + LGS).
+
+  Kurulum:
+    cp launchd/xyz.rehberim.yedek.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/xyz.rehberim.yedek.plist
+
+  Kaldirma:
+    launchctl bootout gui/$(id -u)/xyz.rehberim.yedek
+
+  Neden `cron` degil launchd: makine uykuda ya da kapaliyken kacan isi
+  macOS'ta sonradan calistiran tek zamanlayici bu (`RunAtLoad` + launchd'nin
+  kacan takvim isini telafi etmesi). Dizustunde cron'un 03:30 isi hic
+  calismayabilir.
+
+  Yol `~` ile veriliyor (`sh -lc` genisletiyor): plist herkese acik bir
+  repo'da durdugu icin icine mutlak ev dizini yazilmiyor.
+-->
+<plist version="1.0"><dict>
+  <key>Label</key><string>xyz.rehberim.yedek</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>-lc</string>
+    <string>~/Desktop/Rehberim/Rehberim-Deployment/scripts/yedek-gunluk.sh</string>
+  </array>
+
+  <!-- 03:30: makine muhtemelen kapali, launchd aciliste telafi ediyor. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>3</integer>
+    <key>Minute</key><integer>30</integer>
+  </dict>
+
+  <!-- Gunluk her kosusta UZERINE YAZILMAZ, eklenir: dun sessizce dusen bir
+       is, bugunun basarili kosusuyla silinmesin. -->
+  <key>StandardOutPath</key><string>/tmp/rehberim-yedek.log</string>
+  <key>StandardErrorPath</key><string>/tmp/rehberim-yedek.log</string>
+
+  <key>RunAtLoad</key><false/>
+  <key>ProcessType</key><string>Background</string>
+</dict></plist>

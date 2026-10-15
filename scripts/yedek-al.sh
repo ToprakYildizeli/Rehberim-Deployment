@@ -12,6 +12,7 @@
 # Secenekler (ortam degiskeni):
 #   YEDEK_DIZIN   dosyalarin yazilacagi yer  (varsayilan ~/Desktop/Rehberim/yedekler)
 #   YEDEK_PORT    yerel tunel portu          (varsayilan 55432)
+#   YEDEK_SAKLA   kac gunluk yedek tutulacak (varsayilan 0 = hicbir sey silinmez)
 #   PG_DUMP       pg_dump yolu               (varsayilan /opt/homebrew/opt/libpq/bin/pg_dump)
 #
 # !! Dosya hesaplarin ve ogrencilerin tamamini icerir — kisisel veri.
@@ -26,6 +27,7 @@ esac
 
 DIZIN="${YEDEK_DIZIN:-$HOME/Desktop/Rehberim/yedekler}"
 PORT="${YEDEK_PORT:-55432}"
+SAKLA="${YEDEK_SAKLA:-0}"
 PG_DUMP="${PG_DUMP:-/opt/homebrew/opt/libpq/bin/pg_dump}"
 PG_RESTORE="$(dirname "$PG_DUMP")/pg_restore"
 SERVIS=Postgres
@@ -83,7 +85,7 @@ echo " hazir."
 
 # --- 5. Dokum ---------------------------------------------------------------
 # `--format=custom`: pg_restore ile secmeli geri yukleme ve sikistirma.
-DOSYA="$DIZIN/$PROJE-$(date +%Y%m%d-%H%M).dump"
+DOSYA="$DIZIN/$URUN-$PROJE-$(date +%Y%m%d-%H%M).dump"
 PGPASSWORD="$PGPASS_" "$PG_DUMP" -h 127.0.0.1 -p "$PORT" -U "$PGUSER_" -d "$PGDB_" \
     --format=custom --file="$DOSYA"
 chmod 600 "$DOSYA"   # kisisel veri; baska kullaniciya okutma
@@ -94,18 +96,50 @@ chmod 600 "$DOSYA"   # kisisel veri; baska kullaniciya okutma
 NESNE="$("$PG_RESTORE" --list "$DOSYA" 2>/dev/null | grep -c '^[0-9]' || true)"
 [ "${NESNE:-0}" -gt 0 ] || { echo "DOGRULAMA BASARISIZ: dosya okunamiyor ($DOSYA)" >&2; exit 1; }
 
-# Satir sayilari: sema dogru olup verinin bos gelmesi mumkun. Sayilar
-# uretimden okunuyor; geri yukleme provasinda bunlarla karsilastirilir.
-SAYIM="$(PGPASSWORD="$PGPASS_" "$(dirname "$PG_DUMP")/psql" \
-    -h 127.0.0.1 -p "$PORT" -U "$PGUSER_" -d "$PGDB_" -tAc \
-    "select coalesce(string_agg(t || '=' || n, ' · ' order by t), 'tablo yok')
-     from (select relname as t, n_live_tup as n from pg_stat_user_tables
-           where n_live_tup > 0 order by n_live_tup desc limit 8) s" 2>/dev/null || echo '?')"
+# Satir sayilari: sema dogru olup verinin BOS gelmesi mumkun, ve bu sessiz
+# bir ariza olurdu. Sayilar uretimden okunup dokumun yanina yaziliyor;
+# `yedek-prova.sh` geri yukledigi veritabanini bu dosyayla karsilastiriyor.
+#
+# `n_live_tup` istatistik tablosundan geliyor ve YAKLASIKTIR (autovacuum
+# guncelliyor). Provada birebir esitlik beklenmesin diye gercek sayimi
+# `count(*)` ile aliyoruz; tablo sayisi az, maliyeti onemsiz.
+PSQL="$(dirname "$PG_DUMP")/psql"
+SAYIM_DOSYA="$DOSYA.sayim"
+PGPASSWORD="$PGPASS_" "$PSQL" -h 127.0.0.1 -p "$PORT" -U "$PGUSER_" -d "$PGDB_" -tAq <<'SQL' \
+    | sed '/^$/d' | sort > "$SAYIM_DOSYA"
+select format('select %L as t, count(*) as n from %I.%I',
+              c.relname, n.nspname, c.relname)
+  from pg_class c join pg_namespace n on n.oid = c.relnamespace
+ where c.relkind = 'r' and n.nspname = 'public'
+\gexec
+SQL
+# `\gexec` her tablo icin bir satir uretiyor: "tablo|sayi".
+SAYIM="$(awk -F'|' '$2 > 0 {print $1 "=" $2}' "$SAYIM_DOSYA" | sort -t= -k2 -rn | head -6 \
+    | awk '{printf "%s%s", ayir, $0; ayir=" · "} END {print ""}')"
 
+# --- 7. Saklama (yalniz istenirse) -----------------------------------------
+# Varsayilan 0: hicbir sey silinmez. Eski yedekleri kendiliginden silen bir
+# betik, bir gun tek saglam yedegi de siler. Gun sayisi acikca verilmeli ve
+# en az iki yedek her kosulda korunur.
+if [ "$SAKLA" -gt 0 ]; then
+    # En yeni IKI yedek her kosulda korunur (tarih ne olursa olsun); geri
+    # kalanlardan $SAKLA gunden eski olanlar silinir. Betik uzun sure
+    # calismadiysa elde hic yedek kalmamasin diye.
+    ls -1t "$DIZIN/$URUN-"*.dump 2>/dev/null | tail -n +3 | while read -r gecmis; do
+        if [ -n "$(find "$gecmis" -mtime "+$SAKLA" 2>/dev/null)" ]; then
+            echo "  siliniyor (>$SAKLA gun): $(basename "$gecmis")"
+            rm -f "$gecmis" "$gecmis.sayim"
+        fi
+    done
+fi
+
+TABLO="$(wc -l < "$SAYIM_DOSYA" | tr -d ' ')"
 echo
 echo "Yedek alindi: $DOSYA"
 echo "  boyut   : $(du -h "$DOSYA" | cut -f1)"
 echo "  nesne   : $NESNE"
+echo "  tablo   : $TABLO (sayim: $(basename "$SAYIM_DOSYA"))"
 echo "  satirlar: $SAYIM"
 echo
-echo "Geri yukleme provasi atlanmaz — docs/backup.md."
+echo "Provasi yapilmamis yedek, yedek sayilmaz:"
+echo "  scripts/yedek-prova.sh $DOSYA"
