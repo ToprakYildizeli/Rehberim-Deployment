@@ -51,6 +51,41 @@ Sonra elle: panelden giriş + `/denemeler`de F5.
 adı `CORS_ALLOWED_ORIGINS` (YKS'de `DJANGO_CORS_ALLOWED_ORIGINS`). Komutları
 hafızadan yazarken ikisi de karışıyor.
 
+## Kesinti gerektiren işi ne zaman yapmalı
+
+Veritabanını yeniden başlatan işler (PITR açma, sürüm yükseltme, disk
+değişikliği) için **hafta içi 04:00–06:00**.
+
+Ölçüm (15 Ekim 2026, bir haftalık gunicorn erişim günlüğü, bot ve statik
+istekler ayıklanmış — 1442 gerçek `/api/` isteği):
+
+| Saat | İstek | Saat | İstek |
+|---|---|---|---|
+| 00–02 | **0** | 13:00 | 180 |
+| 03:00 | 1 | 14:00 | 101 |
+| 04–06 | **0** | 17:00 | 107 |
+| 07:00 | 51 | 20:00 | 86 |
+| 10:00 | 185 | **21:00** | **219 — hafta zirvesi** |
+| 12:00 | 92 | 22:00 | 91 |
+
+⚠️ **"Gece" yanlış bir sezgi:** 21:00 haftanın en yoğun saati. Bu bir çalışma
+takip uygulaması — öğrenciler akşam çalışıyor, ders çalışıp kaydını o saatte
+giriyor. Gerçekten sessiz olan pencere **01:00–06:00**.
+
+⚠️ **Hafta sonu da yanlış sezgi:** Cumartesi 359, Pazar 337 istek; Pazartesi
+36, Salı 55. Hafta sonu zirve, hafta içi sakin — aynı sebeple.
+
+Ölçümü tekrarlamak için:
+
+```bash
+cd Rehberim-Backend && railway logs -d --since 7d --lines 5000 > /tmp/erisim.log
+```
+
+Sonra saat alanına (`[GG/Ay/YYYY:SS`) göre say; bot'ları `User-Agent`'tan
+(`bot|crawler|spider|AdsBot|ChatGPT-User`) ve `/api/` dışı yolları ayıkla.
+Ayıklanmazsa tablo yanlış çıkıyor: günlüğün **%38'i** bot taraması
+(`.env`, `/@fs/...` arayan tarayıcılar — hepsi `404`, sızan bir şey yok).
+
 ## Belirtiden sebebe
 
 | Belirti | Muhtemel sebep | Bakılacak yer |
